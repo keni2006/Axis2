@@ -13,10 +13,36 @@ namespace Axis2.WPF
         public MainViewModel MainViewModel { get; private set; }
         public static IUoArtService UoArtService { get; private set; }
 
+        public static bool IsDarkTheme { get; private set; }
+
+        // Swaps our palette dictionary at runtime (found by its source name, so its position
+        // among the merged dictionaries doesn't matter). All theme styles use DynamicResource,
+        // so the custom-styled UI repaints live.
+        public static void SetTheme(bool dark)
+        {
+            var dicts = Current.Resources.MergedDictionaries;
+            var uri = new Uri(dark ? "/Themes/Palette.Dark.xaml" : "/Themes/Palette.Light.xaml", UriKind.Relative);
+            for (int i = 0; i < dicts.Count; i++)
+            {
+                var src = dicts[i].Source?.OriginalString ?? string.Empty;
+                if (src.IndexOf("Palette.", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    dicts[i] = new ResourceDictionary { Source = uri };
+                    break;
+                }
+            }
+            IsDarkTheme = dark;
+        }
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             Logger.Init();
             Logger.Log(LogSource.Core, "Application starting...");
+
+            // Start both theme systems (WPF-UI window chrome + our palette) in Light so the
+            // title bar and content always match, regardless of the OS theme.
+            Wpf.Ui.Appearance.ApplicationThemeManager.Apply(Wpf.Ui.Appearance.ApplicationTheme.Light);
+            SetTheme(false);
 
             // Services
             Logger.Log(LogSource.Core, "Initializing services...");
@@ -90,7 +116,7 @@ namespace Axis2.WPF
             var generalTabViewModel = new GeneralTabViewModel(uoClientCommunicator, dialogService);
             var settingsTabViewModel = new SettingsTabViewModel();
             var itemTabViewModel = new ItemTabViewModel(mulFileManager, scriptParser, eventAggregator, uoClient, settingsTabViewModel.SettingsItemTabViewModel, lightDataService, uoArtService, settingsService);
-            
+
             Logger.Log(LogSource.Profile, "Loading profiles...");
             var profiles = profileService.LoadProfiles();
             if (profiles.Count == 0)

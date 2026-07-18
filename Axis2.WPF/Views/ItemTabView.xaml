@@ -7,11 +7,19 @@
              xmlns:models="clr-namespace:Axis2.WPF.Models"
              xmlns:views="clr-namespace:Axis2.WPF.Views"
              xmlns:converters="clr-namespace:Axis2.WPF.Converters"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800"
+             PreviewKeyDown="Root_PreviewKeyDown">
     <UserControl.Resources>
         <converters:IsSelectedPathConverter x:Key="IsSelectedPathConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <!-- Compact command button: small padding + stretch so text never clips in narrow panels -->
+        <Style x:Key="CompactButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -23,7 +31,10 @@
             <ColumnDefinition Width="200"/>
         </Grid.ColumnDefinitions>
 
-        <TreeView Grid.Column="0" ItemsSource="{Binding Categories}" SelectedItemChanged="TreeView_SelectedItemChanged">
+        <TreeView Grid.Column="0" ItemsSource="{Binding Categories}" SelectedItemChanged="TreeView_SelectedItemChanged"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                  ScrollViewer.CanContentScroll="True">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type models:Category}" ItemsSource="{Binding SubSections}">
                     <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
@@ -73,13 +84,30 @@
 
         <Grid Grid.Column="2">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <ListView Grid.Row="0" ItemsSource="{Binding DisplayedItems}"
+            <Border Grid.Row="0" Margin="0,0,0,4" Padding="8,5" CornerRadius="6"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="🔍" VerticalAlignment="Center" Margin="2,0,8,0" FontSize="14"/>
+                    <TextBox Grid.Column="1" x:Name="SearchBox" VerticalAlignment="Center" BorderThickness="0" Background="Transparent"
+                             Text="{Binding InlineSearchText, UpdateSourceTrigger=PropertyChanged, Delay=150}"
+                             ToolTip="Search all items by name or hex ID (live). Ctrl+F to focus, Enter to Create."/>
+                </Grid>
+            </Border>
+
+            <ListView Grid.Row="1" ItemsSource="{Binding DisplayedItems}"
                       SelectedItem="{Binding SelectedItem}"
                       AllowDrop="True"
+                      MouseDoubleClick="DisplayedItems_MouseDoubleClick"
+                      KeyDown="DisplayedItems_KeyDown"
                       PreviewMouseLeftButtonDown="DisplayedItems_PreviewMouseLeftButtonDown"
                       MouseMove="DisplayedItems_MouseMove">
                 <ListView.View>
@@ -90,7 +118,7 @@
                 </ListView.View>
             </ListView>
 
-            <Grid Grid.Row="1" Margin="5">
+            <Grid Grid.Row="2" Margin="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -147,21 +175,19 @@
 
                 <GroupBox Grid.Row="0" Grid.Column="2" Header="Actions" Margin="5">
                     <StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button Content="Create" Command="{Binding CreateCommand}" Margin="0,0,5,0" Width="60"/>
-                            <Button Content="Tile" Command="{Binding TileCommand}" Margin="0,0,5,0" Width="60"/>
-                            <Button Content="Remove" Command="{Binding RemoveCommand}" Width="60"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
-                            <Button Content="Flip" Command="{Binding FlipCommand}" Margin="0,0,5,0" Width="60"/>
-                            <Button Content="Find" Click="FindButton_Click" Margin="0,0,5,0" Width="60"/>
-                            <Button Content="Nuke" Command="{Binding NukeCommand}" Width="60"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
+                        <UniformGrid Columns="2">
+                            <Button Content="Create" Command="{Binding CreateCommand}" Style="{StaticResource CompactButton}"/>
+                            <Button Content="Tile" Command="{Binding TileCommand}" Style="{StaticResource CompactButton}"/>
+                            <Button Content="Remove" Command="{Binding RemoveCommand}" Style="{StaticResource CompactButton}"/>
+                            <Button Content="Flip" Command="{Binding FlipCommand}" Style="{StaticResource CompactButton}"/>
+                            <Button Content="Find" Click="FindButton_Click" Style="{StaticResource CompactButton}"/>
+                            <Button Content="Nuke" Command="{Binding NukeCommand}" Style="{StaticResource CompactButton}"/>
+                        </UniformGrid>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
                             <CheckBox IsChecked="{Binding IsLightSourceEnabled}" VerticalAlignment="Center" Margin="0,0,5,0"/>
                             <TextBlock Text="Enable Light Source" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <Button Content="Update Tooltip" Command="{Binding UpdateTooltipCommand}" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                        <Button Content="Update Tooltip" Command="{Binding UpdateTooltipCommand}" Margin="2,8,2,2" HorizontalAlignment="Stretch"/>
                     </StackPanel>
                 </GroupBox>
 
@@ -171,10 +197,10 @@
                             <TextBlock Text="Nudge Amount:" VerticalAlignment="Center" Width="80"/>
                             <TextBox Text="{Binding NudgeAmount}" Width="50"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
-                            <Button Content="Nudge Up" Command="{Binding NudgeUpCommand}" Margin="0,0,5,0" Width="80"/>
-                            <Button Content="Nudge Down" Command="{Binding NudgeDownCommand}" Width="80"/>
-                        </StackPanel>
+                        <UniformGrid Columns="2" Margin="0,5,0,0">
+                            <Button Content="Nudge Up" Command="{Binding NudgeUpCommand}" Style="{StaticResource CompactButton}"/>
+                            <Button Content="Nudge Down" Command="{Binding NudgeDownCommand}" Style="{StaticResource CompactButton}"/>
+                        </UniformGrid>
                     </StackPanel>
                 </GroupBox>
 
@@ -204,7 +230,7 @@
 
                 <GroupBox Grid.Row="1" Grid.Column="2" Header="Item ID / Hue" Margin="5">
                     <StackPanel>
-                        <TextBlock Text="ID: {Binding ItemIDText}" Margin="0,5,0,0"/>
+                        <TextBlock Text="{Binding ItemIDText, StringFormat='ID: {0}'}" Margin="0,5,0,0"/>
                         <TextBlock Text="{Binding ItemIDDecText}" Margin="0,5,0,0"/>
                     </StackPanel>
                 </GroupBox>
@@ -232,12 +258,12 @@
                 </ListView.View>
             </ListView>
 
-            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5">
-                <Button Content="New" Command="{Binding NewCustomListCommand}" Margin="0,0,5,0"/>
-                <Button Content="Save" Command="{Binding SaveCustomListCommand}" Margin="0,0,5,0"/>
-                <Button Content="Load" Command="{Binding LoadCustomListCommand}" Margin="0,0,5,0"/>
-                <Button Content="Delete" Command="{Binding DeleteFromCustomListCommand}"/>
-            </StackPanel>
+            <UniformGrid Grid.Row="1" Columns="4" Margin="5">
+                <Button Content="New" Command="{Binding NewCustomListCommand}" Style="{StaticResource CompactButton}"/>
+                <Button Content="Save" Command="{Binding SaveCustomListCommand}" Style="{StaticResource CompactButton}"/>
+                <Button Content="Load" Command="{Binding LoadCustomListCommand}" Style="{StaticResource CompactButton}"/>
+                <Button Content="Delete" Command="{Binding DeleteFromCustomListCommand}" Style="{StaticResource CompactButton}"/>
+            </UniformGrid>
         </Grid>
 
         <Border Grid.Column="5" BorderBrush="Black" BorderThickness="1" Margin="5">

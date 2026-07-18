@@ -97,12 +97,40 @@ namespace Axis2.WPF.ViewModels
             LoadSounds(e.LoadedProfile);
         }
 
-        private async void LoadSpells(Profile profile)
+        private async Task LoadSpells(Profile profile)
         {
             Spells.Clear();
-            if (profile == null || !profile.SelectedScripts.Any())
+            if (profile == null)
             {
-                Logger.Log("MiscTabViewModel: Profile or SelectedScripts are null or empty. Clearing spells.");
+                Logger.Log("MiscTabViewModel: Profile is null. Clearing spells.");
+                return;
+            }
+
+            // Web profile: pull spells from the data server instead of local scripts.
+            if (profile.IsWebProfile)
+            {
+                if (string.IsNullOrWhiteSpace(profile.URL))
+                {
+                    Logger.Log("MiscTabViewModel: Web profile has no URL. Clearing spells.");
+                    return;
+                }
+                try
+                {
+                    var webSpells = await Services.WebDataService.FetchSpellsAsync(profile.URL, profile.Username, profile.Password);
+                    foreach (var spell in webSpells)
+                        Spells.Add(spell);
+                    Logger.Log($"DEBUG: MiscTabViewModel - Loaded {Spells.Count} spells from web profile.");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"ERROR: MiscTabViewModel - Web spell load failed: {ex.Message}");
+                }
+                return;
+            }
+
+            if (!profile.SelectedScripts.Any())
+            {
+                Logger.Log("MiscTabViewModel: SelectedScripts are null or empty. Clearing spells.");
                 return;
             }
 
@@ -125,7 +153,6 @@ namespace Axis2.WPF.ViewModels
                     Logger.Log($"WARNING: MiscTabViewModel - Script file not found: {scriptPath}");
                 }
             }
-            //Logger.Log($"DEBUG: MiscTabViewModel - Loaded {Spells.Count} spells.");
         }
 
         private void LoadMusic(Profile profile)
@@ -202,7 +229,7 @@ namespace Axis2.WPF.ViewModels
         private bool CanSendMusic() => SelectedMusicTrack != null;
         private void SendMusic()
         {
-            string command = $"music {SelectedMusicTrack.ID}"; // Changed to use ID
+            string command = $"music {SelectedMusicTrack.ID}";
             _uoClient.SendToClient(command);
             Logger.Log($"DEBUG: Sent music command to client: {command}");
         }
@@ -228,7 +255,6 @@ namespace Axis2.WPF.ViewModels
                         _soundPlayer.Stream = ms;
                         _soundPlayer.Play();
                     }
-                    //Logger.Log($"DEBUG: Playing sound: {SelectedSound.Name} (ID: {SelectedSound.ID})");
                 }
                 else
                 {
@@ -251,7 +277,7 @@ namespace Axis2.WPF.ViewModels
         private bool CanSendSound() => SelectedSound != null;
         private void SendSound()
         {
-            string command = $"sfx {SelectedSound.DisplayID}"; // Changed to use DisplayID
+            string command = $"sfx {SelectedSound.DisplayID}";
             _uoClient.SendToClient(command);
             Logger.Log($"DEBUG: Sent sound command to client: {command}");
         }

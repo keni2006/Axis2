@@ -28,7 +28,7 @@ namespace Axis2.WPF.ViewModels
         private readonly EventAggregator _eventAggregator;
         private readonly MulFileManager _mulFileManager;
         private readonly BodyDefService _bodyDefService;
-        private readonly LightDataService _lightDataService; // New field
+        private readonly LightDataService _lightDataService;
         private bool _isPaletteModified = false;
 
         private BitmapSource? _itemPreviewImage;
@@ -340,7 +340,7 @@ namespace Axis2.WPF.ViewModels
         public ICommand SelectColorCommand { get; private set; }
         public ICommand ResetHueCommand { get; private set; }
         public ICommand UpdatePreviewCommand { get; private set; }
-        public ICommand ApplyHueToPaletteCommand { get; private set; } // New command
+        public ICommand ApplyHueToPaletteCommand { get; private set; }
         public ICommand SavePaletteCommand { get; private set; }
         public ICommand LoadPaletteCommand { get; private set; }
         #endregion
@@ -370,7 +370,7 @@ namespace Axis2.WPF.ViewModels
             InitializeDefaultValues();
 
             LoadComboBoxData();
-            // LoadQuickColorPaletteFromFile(); // Moved to Handle(ProfileLoadedEvent)
+            // LoadQuickColorPaletteFromFile();
         }
 
         public void Handle(ProfileLoadedEvent message)
@@ -497,7 +497,7 @@ namespace Axis2.WPF.ViewModels
             SelectColorCommand = new RelayCommand<ColorCellViewModel>(OnSelectColor);
             ResetHueCommand = new RelayCommand(OnResetHue);
             UpdatePreviewCommand = new RelayCommand(UpdatePreview);
-            SavePaletteCommand = new RelayCommand(OnSavePalette); // Renamed
+            SavePaletteCommand = new RelayCommand(OnSavePalette);
             LoadPaletteCommand = new RelayCommand(OnLoadPalette); // New
             ApplyHueToPaletteCommand = new RelayCommand<ColorCellViewModel>(OnApplyHueToPalette);
         }
@@ -549,11 +549,11 @@ namespace Axis2.WPF.ViewModels
             SelectedColor = QuickColorPalette.FirstOrDefault();
         }
 
-        private async void OnSavePalette() // Renamed from SaveQuickColorPalette
+        private async void OnSavePalette()
         {
             try
             {
-                string paletteName = await _dialogService.ShowInputDialog("Save Palette", "Enter a name for the palette:", "MyPalette");
+                string paletteName = await _dialogService.ShowInputDialogAsync("Save Palette", "Enter a name for the palette:", "MyPalette");
 
                 if (string.IsNullOrEmpty(paletteName))
                 {
@@ -581,7 +581,7 @@ namespace Axis2.WPF.ViewModels
             }
         }
 
-        private async void OnLoadPalette() // New method
+        private async void OnLoadPalette()
         {
             try
             {
@@ -604,7 +604,7 @@ namespace Axis2.WPF.ViewModels
 
                 ObservableCollection<string> observablePaletteFiles = new ObservableCollection<string>(paletteFiles);
 
-                string? selectedPaletteName = await _dialogService.ShowSelectListDialog("Load Palette", "Select a palette to load:", observablePaletteFiles);
+                string? selectedPaletteName = await _dialogService.ShowSelectListDialogAsync("Load Palette", "Select a palette to load:", observablePaletteFiles);
 
                 if (!string.IsNullOrEmpty(selectedPaletteName))
                 {
@@ -640,7 +640,7 @@ namespace Axis2.WPF.ViewModels
             }
         }
 
-        private void OnLoadPaletteFromFile() // Renamed from LoadQuickColorPaletteFromFile
+        private void OnLoadPaletteFromFile()
         {
             try
             {
@@ -736,7 +736,7 @@ namespace Axis2.WPF.ViewModels
         private async void OnOpenColorSelector()
         {
             var colorSelectionViewModel = new ColorSelectionViewModel(_uoArtService, SelectedItem);
-            bool? result = await _dialogService.ShowDialog(colorSelectionViewModel);
+            bool? result = await _dialogService.ShowDialogAsync(colorSelectionViewModel);
 
             if (result == true && colorSelectionViewModel.SelectedHue != null)
             {
@@ -823,13 +823,13 @@ namespace Axis2.WPF.ViewModels
         private async void OnOpenDoorWizard()
         {
             // Placeholder for Door Wizard logic
-            await _dialogService.ShowDialog(new ColorSelectionViewModel(_uoArtService, SelectedItem));
+            await _dialogService.ShowDialogAsync(new ColorSelectionViewModel(_uoArtService, SelectedItem));
         }
 
         private async void OnOpenLightWizard()
         {
             var lightWizardViewModel = new LightWizardViewModel(_lightDataService, _uoArtService, SelectedItem);
-            bool? result = await _dialogService.ShowDialog(lightWizardViewModel);
+            bool? result = await _dialogService.ShowDialogAsync(lightWizardViewModel);
 
             // Handle result if needed
         }
@@ -882,6 +882,6 @@ namespace Axis2.WPF.ViewModels
                 Logger.Log($"Palette color updated: Index {colorCell.ColorIndex}, Color {colorCell.Color}");
             }
         }
-        
+
     }
 }

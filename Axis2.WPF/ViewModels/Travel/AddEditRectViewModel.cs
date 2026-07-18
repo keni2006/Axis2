@@ -9,7 +9,7 @@ namespace Axis2.WPF.ViewModels.Travel
         private int _y1;
         private int _x2;
         private int _y2;
-        private string _name; // New property
+        private string _name;
 
         public string Name
         {

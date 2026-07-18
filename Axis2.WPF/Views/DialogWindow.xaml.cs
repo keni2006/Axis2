@@ -1,12 +1,12 @@
-using System.Windows; 
+using System.Windows;
 
-namespace Axis2.WPF.Views 
-{ 
-    public partial class DialogWindow : Window 
-    { 
-        public DialogWindow() 
-        { 
-            InitializeComponent(); 
-        } 
-    } 
+namespace Axis2.WPF.Views
+{
+    public partial class DialogWindow : Window
+    {
+        public DialogWindow()
+        {
+            InitializeComponent();
+        }
+    }
 }

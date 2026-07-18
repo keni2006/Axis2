@@ -2,13 +2,28 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <AssemblyName>Axis2</AssemblyName>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- Memory: Workstation + concurrent GC and conserve-memory mode keep the working set down
+         (the runtime returns memory to the OS more aggressively) without forced GC stutter. -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+
+    <!-- Product version 0.1 -->
+    <Version>0.1.0</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <InformationalVersion>0.1</InformationalVersion>
+    <Product>Axis Sphere51a Toolkit</Product>
+
     <!-- Optimization Settings -->
     <SatelliteResourceLanguages>fr</SatelliteResourceLanguages> <!-- Only include French resources -->
     <!-- <PublishTrimmed>true</PublishTrimmed> --> <!-- Enable trimming of unused code -->
@@ -17,11 +32,33 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+  </ItemGroup>
+
+  <!-- GC conserve-memory level (0-9): trades a little CPU to keep the working set lower and
+       return freed memory to the OS sooner. -->
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="6" Trim="false" />
+  </ItemGroup>
+
+  <!-- Native zlib (loaded by name via DllImport for .uop animations). Copied next to the exe and
+       bundled into the single-file publish so no loose DLLs are needed. -->
+  <ItemGroup>
+    <Content Include="Zlib64.dll" Condition="Exists('Zlib64.dll')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Zlib32.dll" Condition="Exists('Zlib32.dll')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ICSharpCode.SharpZipLib.dll" Version="0.85.4.369" />
     <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="17.14.40264" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

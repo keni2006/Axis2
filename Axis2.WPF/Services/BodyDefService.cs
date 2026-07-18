@@ -10,7 +10,7 @@ namespace Axis2.WPF.Services
     {
         public ushort OriginalId { get; set; }
         public ushort NewId { get; set; }
-        public int Hue { get; set; } // Ajout de la propriété Hue
+        public int Hue { get; set; }
         public int MulFile { get; set; }
     }
 
@@ -27,7 +27,7 @@ namespace Axis2.WPF.Services
         public void Load(string bodyDefPath, string bodyConvPath)
         {
             _bodyDefs.Clear();
-            _bodyConv.Clear(); 
+            _bodyConv.Clear();
             LoadBodyConv(bodyConvPath);
             LoadBodyDef(bodyDefPath);
         }
@@ -167,7 +167,7 @@ namespace Axis2.WPF.Services
                 if (ushort.TryParse(parts[0], out ushort originalId))
                 {
                     bool foundValidEntry = false;
-                    
+
                     // Parcourir les colonnes pour trouver la première entrée valide non -1
                     for (int i = 1; i < parts.Length; i++)
                     {

@@ -34,11 +34,9 @@ namespace Axis2.WPF.Services
             var settings = _settingsService.LoadSettings();
             var radarcolPath = settings.OverridePathsSettings.FilePaths.FirstOrDefault(p => p.FileName == "radarcol.mul")?.FilePath;
 
-           // Logger.Log($"Attempting to load radarcol.mul from: {radarcolPath}");
 
             if (string.IsNullOrEmpty(radarcolPath) || !File.Exists(radarcolPath))
             {
-               // Logger.Log("radarcol.mul not found or path is empty. Initializing color map with black.");
                 for (int i = 0; i < 65536; i++)
                 {
                     _colorMap[i] = Colors.Black;
@@ -57,14 +55,9 @@ namespace Axis2.WPF.Services
                         _colorMap[i] = ScaleColor(mulColor);
                     }
                 }
-               // Logger.Log("radarcol.mul loaded successfully.");
-                //Logger.Log($"  _colorMap[0]: {_colorMap[0]}");
-                //Logger.Log($"  _colorMap[100]: {_colorMap[100]}");
-                //Logger.Log($"  _colorMap[65535]: {_colorMap[65535]}");
             }
             catch (Exception ex)
             {
-               // Logger.Log($"Error loading radarcol.mul: {ex.Message}");
                 for (int i = 0; i < 65536; i++)
                 {
                     _colorMap[i] = Colors.Red; // Indicate error with red
@@ -74,9 +67,11 @@ namespace Axis2.WPF.Services
 
         private System.Windows.Media.Color ScaleColor(ushort mulColor)
         {
-            byte red = (byte)(((mulColor >> 0) & 0x1F) * 255 / 31);
+            // radarcol.mul is 15-bit RGB555: bits 10-14 = red, 5-9 = green, 0-4 = blue. (Previously
+            // red/blue were swapped, which turned blue water brown while leaving green land unchanged.)
+            byte red = (byte)(((mulColor >> 10) & 0x1F) * 255 / 31);
             byte green = (byte)(((mulColor >> 5) & 0x1F) * 255 / 31);
-            byte blue = (byte)(((mulColor >> 10) & 0x1F) * 255 / 31);
+            byte blue = (byte)(((mulColor >> 0) & 0x1F) * 255 / 31);
             return System.Windows.Media.Color.FromArgb(255, red, green, blue);
         }
 
@@ -96,12 +91,9 @@ namespace Axis2.WPF.Services
 
         public WriteableBitmap? RenderMap(int mapIndex, string mapPath, int viewPortWidth, int viewPortHeight, int zoomLevel, int centerX, int centerY, StaticsService? staticsService)
         {
-           // Logger.Log($"--- RenderMap START for map index: {mapIndex} ---");
-            //Logger.Log($"RenderMap: Path='{mapPath}', Viewport={viewPortWidth}x{viewPortHeight}, Zoom={zoomLevel}, Center=({centerX},{centerY})");
 
             if (!File.Exists(mapPath) || staticsService == null)
             {
-                //Logger.Log($"ERROR: Map file not found ('{mapPath}') or StaticsService is null.");
                 return null;
             }
 
@@ -109,17 +101,14 @@ namespace Axis2.WPF.Services
             {
                 _mapFileService?.Dispose();
                 _mapFileService = new MemoryMappedFileService(mapPath);
-               // Logger.Log("RenderMap: New MemoryMappedFileService created for map.");
             }
 
             if (!_mapFileService.IsOpen)
             {
-               // Logger.Log($"ERROR: Failed to open map file with MemoryMappedFileService: {mapPath}");
                 return null;
             }
 
             var (fullMapWidth, fullMapHeight) = GetMapDimensions(mapIndex);
-            //Logger.Log($"RenderMap: Using map dimensions {fullMapWidth}x{fullMapHeight} for map index {mapIndex}.");
 
             int outputPixelWidth = viewPortWidth;
             int outputPixelHeight = viewPortHeight;
@@ -150,17 +139,21 @@ namespace Axis2.WPF.Services
             int xEndBlock = (int)((viewPortOriginX_map + outputPixelWidth / currentScaleFactor) / BLOCK_SIZE) + 1;
             int yEndBlock = (int)((viewPortOriginY_map + outputPixelHeight / currentScaleFactor) / BLOCK_SIZE) + 1;
 
-            //Logger.Log($"RenderMap: Calculated block range: X=({xStartBlock} to {xEndBlock}), Y=({yStartBlock} to {yEndBlock})");
 
             xStartBlock = Math.Max(0, xStartBlock);
             yStartBlock = Math.Max(0, yStartBlock);
             xEndBlock = Math.Min(mapWidthInBlocks, xEndBlock);
             yEndBlock = Math.Min(mapHeightInBlocks, yEndBlock);
-            
-            //Logger.Log($"RenderMap: Clamped block range: X=({xStartBlock} to {xEndBlock}), Y=({yStartBlock} to {yEndBlock})");
+
 
             var bitmap = new WriteableBitmap(outputPixelWidth, outputPixelHeight, 96, 96, PixelFormats.Bgr32, null);
             byte[] pixelData = new byte[outputPixelWidth * outputPixelHeight * 4];
+
+            // When zoomed out, several map cells collapse into a single output pixel, so reading every
+            // cell is pure waste (and reads the WHOLE map at max zoom-out). Sample one cell per output
+            // pixel instead. Statics are single tiles — sub-pixel at far zoom — so skip them entirely.
+            int cellStep = zoomLevel < 0 ? (int)Math.Pow(2, Math.Abs(zoomLevel)) : 1;
+            bool renderStatics = zoomLevel >= -1;
 
             try
             {
@@ -172,11 +165,10 @@ namespace Axis2.WPF.Services
                         if (blockX < 0 || blockY < 0 || blockX >= mapWidthInBlocks || blockY >= mapHeightInBlocks) continue;
 
                         long blockOffset = (long)(blockX * mapHeightInBlocks + blockY) * 196;
-                        _mapFileService.ReadInt32(blockOffset);
 
-                        for (int y = 0; y < BLOCK_SIZE; y++)
+                        for (int y = 0; y < BLOCK_SIZE; y += cellStep)
                         {
-                            for (int x = 0; x < BLOCK_SIZE; x++)
+                            for (int x = 0; x < BLOCK_SIZE; x += cellStep)
                             {
                                 long cellOffset = blockOffset + 4 + (y * BLOCK_SIZE + x) * 3;
                                 ushort tileID = _mapFileService.ReadUInt16(cellOffset);
@@ -208,8 +200,8 @@ namespace Axis2.WPF.Services
                     }
                 }
 
-                // Statics Rendering
-                for (int blockX = xStartBlock; blockX < xEndBlock; blockX++)
+                // Statics Rendering (skipped when zoomed far out — single tiles are sub-pixel there).
+                for (int blockX = xStartBlock; renderStatics && blockX < xEndBlock; blockX++)
                 {
                     for (int blockY = yStartBlock; blockY < yEndBlock; blockY++)
                     {
@@ -261,12 +253,10 @@ namespace Axis2.WPF.Services
             }
             catch (Exception ex)
             {
-               // Logger.Log($"FATAL ERROR during map rendering loop: {ex.Message}\n{ex.StackTrace}");
                 return null;
             }
 
             bitmap.WritePixels(new Int32Rect(0, 0, outputPixelWidth, outputPixelHeight), pixelData, outputPixelWidth * 4, 0);
-            //Logger.Log($"--- RenderMap END ---");
             return bitmap;
         }
 
@@ -276,7 +266,6 @@ namespace Axis2.WPF.Services
             {
                 return _colorMap[tileID];
             }
-            //Logger.Log($"Invalid TileID: {tileID}. Returning Magenta.");
             return Colors.Magenta; // Fallback color for invalid tile IDs
         }
 
@@ -286,7 +275,6 @@ namespace Axis2.WPF.Services
 
             if (_mapFileService == null || !_mapFileService.IsOpen)
             {
-               // Logger.Log("Map file service is not available.");
                 return altitudes;
             }
 
@@ -306,7 +294,6 @@ namespace Axis2.WPF.Services
             }
             catch (Exception ex)
             {
-               // Logger.Log($"Error getting map block altitudes: {ex.Message}");
             }
 
             return altitudes;

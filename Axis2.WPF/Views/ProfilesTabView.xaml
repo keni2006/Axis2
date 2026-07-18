@@ -36,6 +36,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -66,12 +68,22 @@
             <TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" Text="{Binding SelectedProfile.URL, Mode=TwoWay}"
                      Visibility="{Binding SelectedProfile.IsWebProfile, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-            <CheckBox Content="Load Resource" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="5"
+            <TextBlock Text="GM Login:" Grid.Row="5" Grid.Column="0" Margin="5" VerticalAlignment="Center"
+                       Visibility="{Binding SelectedProfile.IsWebProfile, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            <TextBox Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" Text="{Binding SelectedProfile.Username, Mode=TwoWay}"
+                     Visibility="{Binding SelectedProfile.IsWebProfile, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+            <TextBlock Text="Password:" Grid.Row="6" Grid.Column="0" Margin="5" VerticalAlignment="Center"
+                       Visibility="{Binding SelectedProfile.IsWebProfile, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            <TextBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" Text="{Binding SelectedProfile.Password, Mode=TwoWay}"
+                     Visibility="{Binding SelectedProfile.IsWebProfile, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+            <CheckBox Content="Load Resource" Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Margin="5"
                       IsChecked="{Binding SelectedProfile.LoadResource, Mode=TwoWay}"
                       Visibility="{Binding SelectedProfile.IsWebProfile, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}"/>
 
             <!-- Script TreeView -->
-            <TreeView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Margin="5" ItemsSource="{Binding AvailableScripts}">
+            <TreeView Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Margin="5" ItemsSource="{Binding AvailableScripts}">
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type models:ScriptItem}" ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal">
@@ -83,7 +95,7 @@
             </TreeView>
 
             <!-- Profile Action Buttons -->
-            <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+            <StackPanel Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
                 <Button Content="Load" Command="{Binding LoadProfileCommand}" Margin="5"/>
                 <Button Content="Save All" Command="{Binding SaveProfileCommand}" Margin="5"/>
                 <Button Content="Cancel" Command="{Binding CancelProfileCommand}" Margin="5"/>

@@ -85,7 +85,6 @@ namespace Axis2.WPF.Services
 
                 // MessageBox pour chaque objet créé (attention: peut être très verbeux!)
                 // Décommentez la ligne suivante si vous voulez voir chaque objet individuel
-                // System.Windows.MessageBox.Show($"Objet créé: ID={csObject.ID}, Color={csObject.Color}, Name={csObject.Name}", "Nouvel Objet", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
 
                 return csObject;
             }

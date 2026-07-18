@@ -47,18 +47,22 @@ namespace Axis2.WPF.ViewModels.Travel
             if (!string.IsNullOrEmpty(mapPath) && staticsService != null)
             {
                 Logger.Log("WorldMapViewModel: All paths found and StaticsService created. Attempting to render map.");
-            {
-                // To show the whole map, we need to adjust the zoom level.
-                // Full map size is 6144x4096.
-                // A negative zoom level zooms out. Let's use -3 to fit the map.
-                int zoomLevel = -3;
-                int centerX = 3072; // Center of the map (6144 / 2)
-                int centerY = 2048; // Center of the map (4096 / 2)
-                int viewPortWidth = 800; // Assuming window width
-                int viewPortHeight = 600; // Assuming window heightj'ai 
-                MapImage = _mapService.RenderMap(0, mapPath, viewPortWidth, viewPortHeight, zoomLevel, centerX, centerY, staticsService);
+                {
+                    // To show the whole map, we need to adjust the zoom level.
+                    // Full map size is 6144x4096.
+                    // A negative zoom level zooms out. Let's use -3 to fit the map.
+                    int zoomLevel = -3;
+                    int centerX = 3072; // Center of the map (6144 / 2)
+                    int centerY = 2048; // Center of the map (4096 / 2)
+                    int viewPortWidth = 800; // Assuming window width
+                    int viewPortHeight = 600; // Assuming window height
+                    MapImage = _mapService.RenderMap(0, mapPath, viewPortWidth, viewPortHeight, zoomLevel, centerX, centerY, staticsService);
+                }
             }
+
+            // StaticsService owns memory-mapped staidx/statics files; dispose it (it's only needed
+            // for the single render above) so opening the world map repeatedly doesn't leak MMFs.
+            staticsService?.Dispose();
         }
-    }
     }
 }

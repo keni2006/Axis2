@@ -17,7 +17,7 @@ namespace Axis2.WPF.Services
         private string _huesMulPath;
         private string _lightMulPath;
         private string _lightIdxPath;
-        private MulFileManager _mulFileManager; // New field
+        private MulFileManager _mulFileManager;
 
         private ushort[,]? _huesData; // [hueIndex, colorIndex]
 
@@ -57,7 +57,6 @@ namespace Axis2.WPF.Services
         {
             if (string.IsNullOrEmpty(_huesMulPath) || !File.Exists(_huesMulPath))
             {
-                //Logger.Log($"Error: Hues.mul path is not configured or file does not exist. Path: {_huesMulPath}");
                 _huesData = null;
                 return;
             }
@@ -84,11 +83,9 @@ namespace Axis2.WPF.Services
                         }
                     }
                 }
-                //Logger.Log($"Hues data loaded successfully from: {_huesMulPath}");
             }
             catch (Exception ex)
             {
-                //Logger.Log($"Error loading hues data from {_huesMulPath}: {ex.Message}");
                 _huesData = null;
             }
         }
@@ -105,7 +102,6 @@ namespace Axis2.WPF.Services
         {
             if (_huesData == null || hue <= 0 || shade < 0 || hue > _huesData.GetLength(0) || shade >= _huesData.GetLength(1))
             {
-                //Logger.Log($"Warning: Invalid hue ({hue}) or shade ({shade}) for GetColorFromHue. HuesData is null: {_huesData == null}. Returning Transparent.");
                 return Colors.Transparent; // Return a default/error color
             }
             // UO hues are 1-indexed in client, but 0-indexed in our array
@@ -228,16 +224,32 @@ namespace Axis2.WPF.Services
             return System.Windows.Media.Color.FromRgb((byte)(r * 255), (byte)(g * 255), (byte)(b * 255));
         }
 
+        // The item/NPC lists bind every row's image through this method, repeatedly, so decoding
+        // art.mul into a fresh BitmapSource each time is a major source of allocation churn. Cache
+        // the (frozen) result per (itemID, hue). Bounded; cleared wholesale when it grows too large.
+        private readonly Dictionary<(int id, int hue), BitmapSource?> _itemArtCache = new();
+        private const int ItemArtCacheCap = 8192;
+        private readonly object _itemArtCacheLock = new();
+
         public BitmapSource? GetItemArt(int itemID, int hue)
         {
-            // Call MulFileManager.GetArtRecord directly
-            var artRecord = _mulFileManager.GetArtRecord((uint)itemID);
-            if (artRecord != null)
+            var key = (itemID, hue);
+            lock (_itemArtCacheLock)
             {
-                return _mulFileManager.CreateBitmapSource(artRecord, hue);
+                if (_itemArtCache.TryGetValue(key, out var cached))
+                    return cached;
             }
-            Logger.Log($"[GetItemArt] No ArtRecord found for itemID: {itemID}. Returning null.");
-            return null;
+
+            var artRecord = _mulFileManager.GetArtRecord((uint)itemID);
+            BitmapSource? bmp = artRecord != null ? _mulFileManager.CreateBitmapSource(artRecord, hue) : null;
+
+            lock (_itemArtCacheLock)
+            {
+                if (_itemArtCache.Count >= ItemArtCacheCap)
+                    _itemArtCache.Clear();
+                _itemArtCache[key] = bmp;
+            }
+            return bmp;
         }
 
         public BitmapSource? GetNpcArt(int npcID, int hue)
@@ -259,12 +271,6 @@ namespace Axis2.WPF.Services
 
         public unsafe BitmapSource? GetLightImage(ushort lightId, ushort colorId)
         {
-            Logger.Log($"[GetLightImage] Attempting to load light image for ID: {lightId} with Color ID: {colorId}");
-            Logger.Log($"[GetLightImage] Light MUL Path: {_lightMulPath}");
-            Logger.Log($"[GetLightImage] Light IDX Path: {_lightIdxPath}");
-            Logger.Log($"[GetLightImage] Light MUL Exists: {File.Exists(_lightMulPath)}");
-            Logger.Log($"[GetLightImage] Light IDX Exists: {File.Exists(_lightIdxPath)}");
-
             if (string.IsNullOrEmpty(_lightMulPath) || !File.Exists(_lightMulPath) ||
                 string.IsNullOrEmpty(_lightIdxPath) || !File.Exists(_lightIdxPath))
             {

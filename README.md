@@ -1,33 +1,86 @@
-Bonjour à tous,
-TOUJOURS LANCER AXIS EN MODE ADMINISTRATEUR ! Sinon les commandes client vers Orion ne fonctionneront pas !
+<p align="center">
+  <img src="Axis2.WPF/Assets/icon.png" width="90" alt="Axis2"/>
+  &nbsp;&nbsp;&nbsp;
+  <img src="AxisSphere51Server/AxisSphere51.Server/Assets/server-icon.png" width="90" alt="AxisServer"/>
+</p>
 
-L'avis2 de https://github.com/DavideRei/Axis2/tree/master/release    ne fonctionnait pas pour une partie de l'équipe du shard sur lequel je travaille.
-De plus l'axis2 avait une résolution inadapté aux besoins actuels.
-J'ai donc repris le même visuel mais refait le tout en .net 9.0  et en WPF.
-Il est adapté aux particularités du shard "UOResistance" mais il devrait fournir une bonne base pour tout ceux qui souhaite un outil SphereX puissant.
+<h1 align="center">Axis2 — Sphere 51a Toolkit</h1>
 
-* Il faut correctement configurer son SETTINGS avec votre prefix et votre UO Title (en lien avec le nom de la fenêtre de votre shard.) dans le cas de notre shard on notera "Resistance" car c'est un élément du nom de la fenêtre.
-* File Paths avec votre client et les liens muls
-* L'onglet Profile devra être lancer plusieurs fois pour bien prendre en charge votre répertoire qui contient les scripts et bien actualiser votre "Load Resource". Le parsing est bon mais tout le reste est "basic"
-* L'onglet Launcher est basic et fonctionne bien avec Orion, les informations sont stocké dans l'appdata/axis2
-  
-* L'onglet ITEM est classic et prend en charge les .mul avec la possibilité de creer des "CUSTOM LIST" et de "CLICK AND DROP" vos items.
-* L'onglet ITEM TWEAK est spécial. Il contient:
-* Un quick Color Palette que vous pouvez modifier avec le "CLICK DROIT" en ayant préalablement choisis une couleur dans "COLOR SELCTOR", vous pourrez sauver plusieurs palettes pour partager avec vos équipes de builder.
-* Open Light Wizard est complètement spécifique à UORESISTANCE, donc inutilisable.
-* Les attributes fonctionnent mais le reste n'est pas implémenté pour le moment.
+<p align="center">GM/admin tool for Sphere 0.51a shards, with an optional data server.<br/>
+Инструмент GM/админа для шардов Sphere 0.51a, с опциональным сервером данных.</p>
 
-* L'onglet SPAWN lis parfaitement les animations .uop et .mul. (rappel: Il faut rajouter le Zlib64.dll dans son build pour pouvoir lire les animations des .uop)
-* Le Place fait aussi tout et donc le INIT est inutile. Il prends également en charge le hue du body.def. Normalement vous devriez voir parfaitement l'ensemble.
-* (Je suis content car j'ai voulu honoré PUNT qui malheureusement ne donne plus signe de vie et qui était un pro des .uop et des fichiers UO en général ! )
-* Le SPAWN comprends donc parfaitement le parsing des scripts SphereX avec les liens body.def, mobtypes et bodyconv.
-   
-* L'onglet TRAVEL permet de se balader à la souris avec "click gauche" mais aussi en zoom à la molette et en click and drop.
-* J'ai pas mal bossé sur le moyen de directement modifier dans le fichier .scp les Area et Room. Vous devez sélectionner l'encart "RECTANGLES" et vous pourrez modifier ou rajouter des ARFEA et ROOM directement sur la MAP !!!
+---
 
-* L'onglet "MISC" est assez spécifique à UORESISTANCE mais fait le "basic" et devrait être facilement modifiable. Attention pour ORIOn j'ai du faire un ID -1 par rapport à soundIDX.mul.
+## English
 
-* PLAYER TWEAK; ACCOUNT, COMMANDS, REMINDER ne fonctionne pas !
-* LOG reprends quelques LOgs qui provient directement des Logger.log
+**Axis2** loads your shard's items, NPCs, regions and spells and lets a GM work with them and send
+commands to a running UO client (FWUO / Orion / ClassicUO). Data comes either from **local scripts**
+or from the bundled **AxisServer** over the network (a "Web Profile").
 
-Prapilk 18/09/2025
+### Download & run
+Grab the binaries from **Releases** (`Package/`):
+* `Axis2/Axis2.exe` — the tool. **Run as administrator** (required to send commands to the client).
+* `AxisServer/AxisServer.exe` — the data server (optional, for Web Profiles).
+
+### Client settings (in the app)
+Open the **Settings** tab:
+* **Command Prefix** — your shard's command prefix.
+* **UO Title** — part of your client window's title (used to find the client).
+* **File Paths** — point these at your UO client's `.mul`/`.uop` files (art, hues, maps, sounds).
+
+Then open **Profiles**, create a profile:
+* **Local** — pick the folder with your `.scp` scripts and the scripts to load.
+* **Web** — enter the AxisServer URL + your Sphere account login/password.
+
+### Server settings (`AxisServer/axisserver.ini`)
+Plain text — edit and restart the server:
+```ini
+Url          = http://0.0.0.0:5099          # address to listen on
+BaseDirectory = D:\YourShard\...            # folder with your scripts
+ItemFiles    = sphereitem.scp, sphereitem2.scp
+CharFiles    = spherechar.scp
+MapFiles     = spheremap.scp, spheremap2.scp, spheremap3.scp
+AccountFile  = accounts\sphereaccu.scp      # for login
+MinPlevel    = 2                            # only PLEVEL 2+ (staff) may connect; players blocked
+```
+The server logs connections and requests to `AxisServer/logs/`.
+
+---
+
+## Русский
+
+**Axis2** загружает предметы, NPC, регионы и заклинания вашего шарда, позволяет GM работать с ними
+и отправлять команды в запущенный клиент UO (FWUO / Orion / ClassicUO). Данные берутся из
+**локальных скриптов** или с прилагаемого **сервера AxisServer** по сети («веб-профиль»).
+
+### Скачать и запустить
+Бинарники — в **Releases** (папка `Package/`):
+* `Axis2/Axis2.exe` — сам инструмент. **Запускать от администратора** (нужно для отправки команд в клиент).
+* `AxisServer/AxisServer.exe` — сервер данных (опционально, для веб-профилей).
+
+### Настройки клиента (в программе)
+Вкладка **Settings**:
+* **Command Prefix** — префикс команд вашего шарда.
+* **UO Title** — часть заголовка окна клиента (по нему находится клиент).
+* **File Paths** — пути к файлам `.mul`/`.uop` клиента UO (арт, hues, карты, звуки).
+
+Затем вкладка **Profiles**, создайте профиль:
+* **Локальный** — папка со скриптами `.scp` и выбор скриптов.
+* **Веб** — URL сервера AxisServer + логин/пароль вашего Sphere-аккаунта.
+
+### Настройки сервера (`AxisServer/axisserver.ini`)
+Обычный текст — отредактируйте и перезапустите сервер:
+```ini
+Url          = http://0.0.0.0:5099          # адрес для прослушивания
+BaseDirectory = D:\YourShard\...            # папка со скриптами
+ItemFiles    = sphereitem.scp, sphereitem2.scp
+CharFiles    = spherechar.scp
+MapFiles     = spheremap.scp, spheremap2.scp, spheremap3.scp
+AccountFile  = accounts\sphereaccu.scp      # для входа
+MinPlevel    = 2                            # только PLEVEL 2+ (стафф); игроки заблокированы
+```
+Сервер пишет подключения и запросы в `AxisServer/logs/`.
+
+---
+
+<p align="center"><sub>Original visual & concept by Prapilk · based on Axis2 · honoring PUNT</sub></p>

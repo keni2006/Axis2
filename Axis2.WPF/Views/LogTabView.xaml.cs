@@ -1,1 +1,2 @@
-using System.Windows.Controls; namespace Axis2.WPF.Views { public partial class LogTabView : System.Windows.Controls.UserControl { public LogTabView() { InitializeComponent(); } } }
+using System.Windows.Controls;
+namespace Axis2.WPF.Views { public partial class LogTabView : System.Windows.Controls.UserControl { public LogTabView() { InitializeComponent(); } } }

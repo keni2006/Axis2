@@ -2,8 +2,8 @@ using System.Collections.ObjectModel;
 using Axis2.WPF.Models;
 using Axis2.WPF.Mvvm;
 using System.Windows;
-using System.ComponentModel; // Added for IDataErrorInfo
-using System.Linq; // Added for LINQ
+using System.ComponentModel;
+using System.Linq;
 
 namespace Axis2.WPF.ViewModels.Travel
 {
@@ -102,11 +102,11 @@ namespace Axis2.WPF.ViewModels.Travel
             }
         }
 
-        public ObservableCollection<RegionGroup> RegionGroups { get; } // Renamed from Groups
+        public ObservableCollection<RegionGroup> RegionGroups { get; }
         public ObservableCollection<AreaDefinition> AreasInSelectedGroup { get; } // New collection for areas
         public ObservableCollection<short> AvailableMaps { get; }
 
-        public RegionGroup SelectedRegionGroup // New property
+        public RegionGroup SelectedRegionGroup
         {
             get => _selectedRegionGroup;
             set
@@ -125,7 +125,7 @@ namespace Axis2.WPF.ViewModels.Travel
             }
         }
 
-        public AreaDefinition SelectedArea // New property
+        public AreaDefinition SelectedArea
         {
             get => _selectedArea;
             set => SetProperty(ref _selectedArea, value);

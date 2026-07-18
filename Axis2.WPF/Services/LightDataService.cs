@@ -33,9 +33,6 @@ namespace Axis2.WPF.Services
             string lightColorsFilePath = Path.Combine(orionDataPath, "light_colors.txt");
             string drawConfigFilePath = Path.Combine(orionDataPath, "draw_config.txt");
 
-            //Logger.Log($"[LightDataService] Loading light data from: {orionDataPath}");
-            //Logger.Log($"[LightDataService] light_colors.txt path: {lightColorsFilePath}");
-            //Logger.Log($"[LightDataService] draw_config.txt path: {drawConfigFilePath}");
 
             LoadLightColors(lightColorsFilePath);
             LoadDrawConfigs(drawConfigFilePath);
@@ -48,7 +45,6 @@ namespace Axis2.WPF.Services
             LightColors.Clear();
             if (!File.Exists(filePath))
             {
-               //Logger.Log($"Error: light_colors.txt not found at {filePath}");
                 return;
             }
 
@@ -92,20 +88,17 @@ namespace Axis2.WPF.Services
                         }
                     }
                 }
-                //Logger.Log($"Loaded {LightColors.Count} light colors from {filePath}");
             }
             catch (Exception ex)
             {
-                //Logger.Log($"Error loading light_colors.txt: {ex.Message}");
             }
         }
 
-                private void LoadDrawConfigs(string filePath)
+        private void LoadDrawConfigs(string filePath)
         {
             DrawConfigs.Clear();
             if (!File.Exists(filePath))
             {
-                //Logger.Log($"Error: draw_config.txt not found at {filePath}");
                 return;
             }
 
@@ -144,11 +137,9 @@ namespace Axis2.WPF.Services
                         });
                     }
                 }
-               // Logger.Log($"Loaded {DrawConfigs.Count} draw configs from {filePath}");
             }
             catch (Exception ex)
             {
-                //Logger.Log($"Error loading draw_config.txt: {ex.Message}");
             }
         }
 
@@ -157,7 +148,6 @@ namespace Axis2.WPF.Services
             string? tiledataMulPath = _allSettings.OverridePathsSettings.FilePaths.FirstOrDefault(p => p.FileName == "tiledata.mul")?.FilePath;
             if (string.IsNullOrEmpty(tiledataMulPath) || !File.Exists(tiledataMulPath))
             {
-                //Logger.Log($"Error: tiledata.mul not found at {tiledataMulPath}");
                 return;
             }
 
@@ -177,7 +167,7 @@ namespace Axis2.WPF.Services
                 fs.Seek(landDataLength, SeekOrigin.Begin); // Skip land data
 
                 var buffer = new byte[fs.Length - fs.Position];
-                fs.Read(buffer, 0, buffer.Length);
+                fs.ReadExactly(buffer);
 
                 GCHandle gc = GCHandle.Alloc(buffer, GCHandleType.Pinned);
                 IntPtr ptr = gc.AddrOfPinnedObject();
@@ -220,7 +210,6 @@ namespace Axis2.WPF.Services
                     gc.Free();
                 }
             }
-            //Logger.Log($"Loaded {TileDataItems.Count} item tile data entries from {tiledataMulPath}");
         }
 
         private void LoadLightMul()
@@ -228,7 +217,6 @@ namespace Axis2.WPF.Services
             string? lightMulPath = _allSettings.OverridePathsSettings.FilePaths.FirstOrDefault(p => p.FileName == "light.mul")?.FilePath;
             if (string.IsNullOrEmpty(lightMulPath) || !File.Exists(lightMulPath))
             {
-                //Logger.Log($"Error: light.mul not found at {lightMulPath}");
                 return;
             }
 
@@ -252,7 +240,6 @@ namespace Axis2.WPF.Services
                     id++;
                 }
             }
-            //Logger.Log($"Loaded {LightMulItems.Count} light definitions from {lightMulPath}");
         }
     }
 }

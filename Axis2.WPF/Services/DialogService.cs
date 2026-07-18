@@ -2,8 +2,8 @@ using System.Windows;
 using System.Threading.Tasks;
 using Axis2.WPF.Mvvm;
 using Axis2.WPF.Views;
-using Axis2.WPF.Views.Dialogs; // Added for InputDialog
-using System.Collections.ObjectModel; // Added for ObservableCollection
+using Axis2.WPF.Views.Dialogs;
+using System.Collections.ObjectModel;
 
 namespace Axis2.WPF.Services
 {
@@ -15,7 +15,7 @@ namespace Axis2.WPF.Services
             return result == MessageBoxResult.Yes;
         }
 
-        public async Task<bool?> ShowDialog<TViewModel>(TViewModel viewModel) where TViewModel : class
+        public async Task<bool?> ShowDialogAsync<TViewModel>(TViewModel viewModel) where TViewModel : class
         {
             if (viewModel is IDialog dialogViewModel)
             {
@@ -58,7 +58,7 @@ namespace Axis2.WPF.Services
             return false;
         }
 
-        public async Task<string?> ShowInputDialog(string title, string message, string initialInput = "")
+        public async Task<string?> ShowInputDialogAsync(string title, string message, string initialInput = "")
         {
             var viewModel = new InputDialogViewModel(title, message, initialInput);
             var dialog = new InputDialog { DataContext = viewModel };
@@ -78,7 +78,7 @@ namespace Axis2.WPF.Services
             return null;
         }
 
-        public async Task<string?> ShowSelectListDialog(string title, string message, ObservableCollection<string> items)
+        public async Task<string?> ShowSelectListDialogAsync(string title, string message, ObservableCollection<string> items)
         {
             var viewModel = new SelectListDialogViewModel(title, message, items);
             var dialog = new SelectListDialog { DataContext = viewModel };

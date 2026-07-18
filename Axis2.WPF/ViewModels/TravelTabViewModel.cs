@@ -9,7 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows;
 using System;
-using System.Threading.Tasks; // Added for Task and async/await
+using System.Threading.Tasks;
 
 namespace Axis2.WPF.ViewModels
 {
@@ -145,6 +145,17 @@ namespace Axis2.WPF.ViewModels
         }
         private short _selectedMap;
         private Profile _currentProfile;
+
+        // Building a StaticsService opens the staidx/statics memory-mapped files and reads the
+        // whole radarcol table plus every statics index — far too expensive to redo on every
+        // pan/zoom. Cache it and rebuild only when the map file or its source paths change.
+        private StaticsService _cachedStaticsService;
+        private string _cachedStaticsKey;
+        // LoadSettings() reads + deserialises settings.json from disk on every call; cache it so
+        // panning/zooming doesn't hit the disk each frame. Refreshed when a profile is loaded.
+        private AllSettings _cachedSettings;
+        // Coalesces rapid pan re-renders into one background render so dragging stays smooth.
+        private bool _mapRenderQueued;
 
         public TravelTabViewModel(TravelDataService travelDataService, MulMapService mapService, SettingsService settingsService, EventAggregator eventAggregator, LocationService locationService, IUoClient uoClient, ScriptParser scriptParser, ScriptParserService scriptParserService)
         {
@@ -342,7 +353,7 @@ namespace Axis2.WPF.ViewModels
             set => SetProperty(ref _editingOriginalRect, value);
         }
 
-        
+
 
         public string SelectedCategory
         {
@@ -390,17 +401,15 @@ namespace Axis2.WPF.ViewModels
                     SelectedRect = Rect.Empty; // ADDED THIS LINE
                     if (_selectedRoom != null)
                     {
-                        // *** GEMINI CHANGE START ***
                         if (_selectedRoom.Map != this.SelectedMapFile)
                         {
                             SelectedMapFile = (short)_selectedRoom.Map;
                         }
-                        // *** GEMINI CHANGE END ***
 
                         // Update map center based on selected room's coordinates
                         _mapCenterX = _selectedRoom.P.X;
                         _mapCenterY = _selectedRoom.P.Y;
-                        
+
                         if (_selectedRoom.Map == this.SelectedMapFile)
                         {
                             LoadInitialData(); // Recenter and redraw map
@@ -464,10 +473,10 @@ namespace Axis2.WPF.ViewModels
                             _mapCenterX = firstRect.X + firstRect.Width / 2;
                             _mapCenterY = firstRect.Y + firstRect.Height / 2;
                         }
-                        
+
                         if (_selectedRegion.Map == this.SelectedMapFile)
                         {
-                            LoadInitialData(); 
+                            LoadInitialData();
                         }
 
                         // Update detail properties
@@ -590,6 +599,7 @@ namespace Axis2.WPF.ViewModels
             }
             Logger.Log($"DEBUG: Profile name: {e.LoadedProfile.Name}");
 
+            _cachedSettings = _settingsService.LoadSettings(); // refresh cached paths for the new profile
             LoadInitialData(); // Reload map with new paths
             LoadTravelData(e.LoadedProfile);
         }
@@ -597,8 +607,8 @@ namespace Axis2.WPF.ViewModels
         private void LoadInitialData(int? overrideViewPortWidth = null, int? overrideViewPortHeight = null)
         {
             Logger.Log($"--- LoadInitialData START for map index: {SelectedMapFile} ---");
-            var settings = _settingsService.LoadSettings();
-            
+            var settings = _cachedSettings ??= _settingsService.LoadSettings();
+
             var mapPath = settings.OverridePathsSettings.FilePaths.FirstOrDefault(p => p.FileName == $"map{SelectedMapFile}.mul")?.FilePath;
             var staidxPath = settings.OverridePathsSettings.FilePaths.FirstOrDefault(p => p.FileName == $"staidx{SelectedMapFile}.mul")?.FilePath;
             var staticsPath = settings.OverridePathsSettings.FilePaths.FirstOrDefault(p => p.FileName == $"statics{SelectedMapFile}.mul")?.FilePath;
@@ -611,8 +621,16 @@ namespace Axis2.WPF.ViewModels
             StaticsService currentStaticsService = null;
             if (!string.IsNullOrEmpty(staidxPath) && !string.IsNullOrEmpty(staticsPath) && !string.IsNullOrEmpty(radarcolPath))
             {
-                currentStaticsService = new StaticsService(staidxPath, staticsPath, radarcolPath);
-                Logger.Log("StaticsService created successfully.");
+                // Reuse the cached StaticsService unless the map or its file paths changed.
+                var staticsKey = $"{SelectedMapFile}|{staidxPath}|{staticsPath}|{radarcolPath}";
+                if (_cachedStaticsService == null || _cachedStaticsKey != staticsKey)
+                {
+                    _cachedStaticsService?.Dispose();
+                    _cachedStaticsService = new StaticsService(staidxPath, staticsPath, radarcolPath);
+                    _cachedStaticsKey = staticsKey;
+                    Logger.Log($"StaticsService (re)built for map {SelectedMapFile}.");
+                }
+                currentStaticsService = _cachedStaticsService;
             }
             else
             {
@@ -621,7 +639,7 @@ namespace Axis2.WPF.ViewModels
 
             if (!AvailableMaps.Any())
             {
-                for (short i = 0; i <= 5; i++) 
+                for (short i = 0; i <= 5; i++)
                 {
                     AvailableMaps.Add(i);
                 }
@@ -629,12 +647,12 @@ namespace Axis2.WPF.ViewModels
 
             if (!string.IsNullOrEmpty(mapPath) && currentStaticsService != null)
             {
-                int actualViewPortWidth = overrideViewPortWidth ?? 1024; 
+                int actualViewPortWidth = overrideViewPortWidth ?? 1024;
                 int actualViewPortHeight = overrideViewPortHeight ?? 768;
 
                 Logger.Log($"Calling RenderMap with: mapIndex={SelectedMapFile}, mapPath='{mapPath}', zoom={ZoomLevel}, center=({_mapCenterX},{_mapCenterY}), viewport={actualViewPortWidth}x{actualViewPortHeight}");
                 MapImage = _mapService.RenderMap(SelectedMapFile, mapPath, actualViewPortWidth, actualViewPortHeight, ZoomLevel, (int)_mapCenterX, (int)_mapCenterY, currentStaticsService);
-                
+
                 if (MapImage != null)
                 {
                     Logger.Log($"RenderMap returned a WriteableBitmap of size {MapImage.PixelWidth}x{MapImage.PixelHeight}.");
@@ -656,41 +674,92 @@ namespace Axis2.WPF.ViewModels
             Logger.Log("--- LoadInitialData END ---");
         }
 
-        private async void LoadTravelData(Profile profile)
+        private async Task LoadTravelData(Profile profile)
         {
             Logger.Log("DEBUG: LoadTravelData method entered.");
-            if (profile == null || string.IsNullOrEmpty(profile.BaseDirectory) || !profile.SelectedScripts.Any())
+            if (profile == null)
             {
-                Logger.Log("TravelTabViewModel: Profile, BaseDirectory, or SelectedScripts are null or empty. Clearing travel data.");
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    RegionGroups.Clear();
-                    _allLocations.Clear();
-                    Locations.Clear();
-                    Categories.Clear();
-                });
+                ClearTravelData();
                 return;
             }
 
-            _currentProfile = profile;
-            var mapScriptPaths = profile.SelectedScripts.Select(s => s.Path).Distinct().ToList();
-            Logger.Log($"DEBUG: TravelTabViewModel - Found {mapScriptPaths.Count} unique scripts to parse.");
+            List<SObject> travelObjects;
 
-            var allParsedObjects = new List<SObject>();
-            await System.Threading.Tasks.Task.Run(() =>
+            if (profile.IsWebProfile)
             {
-                foreach (var scriptPath in mapScriptPaths)
+                // Web profile: pull regions (areas/rooms with geometry) from the data server and
+                // map them onto the same SObject/Region shape the local parser produces.
+                if (string.IsNullOrWhiteSpace(profile.URL))
                 {
-                    if (File.Exists(scriptPath))
-                    {
-                        allParsedObjects.AddRange(_scriptParser.ParseFile(scriptPath));
-                    }
+                    Logger.Log("TravelTabViewModel: Web profile has no URL. Clearing travel data.");
+                    ClearTravelData();
+                    return;
                 }
+                _currentProfile = profile;
+                try
+                {
+                    var regionObjects = await Services.WebDataService.FetchRegionsAsync(profile.URL, profile.Username, profile.Password);
+                    travelObjects = regionObjects.Where(o => o.Region != null).ToList();
+                    Logger.Log($"DEBUG: TravelTabViewModel - Loaded {travelObjects.Count} regions from web profile.");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"ERROR: TravelTabViewModel - Web region load failed: {ex.Message}");
+                    System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                        System.Windows.MessageBox.Show(
+                            $"Could not load regions from server:\n{profile.URL}\n\n{ex.Message}",
+                            "Web Profile", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning));
+                    ClearTravelData();
+                    return;
+                }
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(profile.BaseDirectory) || !profile.SelectedScripts.Any())
+                {
+                    Logger.Log("TravelTabViewModel: Profile, BaseDirectory, or SelectedScripts are null or empty. Clearing travel data.");
+                    ClearTravelData();
+                    return;
+                }
+
+                _currentProfile = profile;
+                var mapScriptPaths = profile.SelectedScripts.Select(s => s.Path).Distinct().ToList();
+                Logger.Log($"DEBUG: TravelTabViewModel - Found {mapScriptPaths.Count} unique scripts to parse.");
+
+                var allParsedObjects = new List<SObject>();
+                await System.Threading.Tasks.Task.Run(() =>
+                {
+                    foreach (var scriptPath in mapScriptPaths)
+                    {
+                        if (File.Exists(scriptPath))
+                        {
+                            allParsedObjects.AddRange(_scriptParser.ParseFile(scriptPath));
+                        }
+                    }
+                });
+
+                travelObjects = allParsedObjects.Where(o => o.Region != null).ToList();
+                Logger.Log($"DEBUG: Found {travelObjects.Count} travel-related SObjects after parsing.");
+            }
+
+            BuildTravelUI(travelObjects);
+        }
+
+        private void ClearTravelData()
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                RegionGroups.Clear();
+                _allLocations.Clear();
+                Locations.Clear();
+                Categories.Clear();
             });
+        }
 
-            var travelObjects = allParsedObjects.Where(o => o.Region != null).ToList();
-            Logger.Log($"DEBUG: Found {travelObjects.Count} travel-related SObjects after parsing.");
-
+        // Builds the region tree + location list from parsed travel objects — shared by the local
+        // script path and the web-profile path so both produce an identical Travel tab.
+        private void BuildTravelUI(List<SObject> travelObjects)
+        {
             var groups = travelObjects.GroupBy(o => o.Region.Group).ToDictionary(g => g.Key, g => g.ToList());
             Logger.Log($"DEBUG: Grouped into {groups.Count} region groups.");
 
@@ -778,7 +847,7 @@ namespace Axis2.WPF.ViewModels
             });
         }
 
-        
+
 
         private void FilterLocationsByCategory()
         {
@@ -847,7 +916,7 @@ namespace Axis2.WPF.ViewModels
 
             // Store the original rectangle for editing
             EditingOriginalRect = SelectedRect;
-            
+
             // Activate drawing mode for editing
             IsDrawingMode = true;
             IsEditingExistingRectMode = true; // ADDED THIS LINE
@@ -1061,7 +1130,22 @@ namespace Axis2.WPF.ViewModels
             _mapCenterX -= delta.X / currentScaleFactor;
             _mapCenterY -= delta.Y / currentScaleFactor;
 
-            LoadInitialData();
+            RequestMapRender();
+        }
+
+        // Many mouse-move events during a drag collapse into a single background render, so the UI
+        // thread isn't blocked doing a full synchronous map render on every event.
+        private void RequestMapRender()
+        {
+            if (_mapRenderQueued) return;
+            _mapRenderQueued = true;
+            System.Windows.Application.Current.Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Background,
+                new Action(() =>
+                {
+                    _mapRenderQueued = false;
+                    LoadInitialData();
+                }));
         }
 
         private void MapClick(System.Windows.Point clickPoint)
@@ -1127,7 +1211,7 @@ namespace Axis2.WPF.ViewModels
             MouseMapCoordinatesText = $"X: {mouseMapX}, Y: {mouseMapY}";
         }
 
-                private void DrawRegionOnMap()
+        private void DrawRegionOnMap()
         {
             if (MapImage == null) return;
 
@@ -1345,7 +1429,7 @@ namespace Axis2.WPF.ViewModels
             finally { MapImage.Unlock(); }
         }
 
-                public void ProcessDrawnRectangle(System.Windows.Rect drawnRect)
+        public void ProcessDrawnRectangle(System.Windows.Rect drawnRect)
         {
             // Pass RegionGroups directly instead of sortedGroups
             var viewModel = new Travel.AddEditRoomViewModel(RegionGroups, AvailableMaps, drawnRect);
@@ -1384,7 +1468,7 @@ namespace Axis2.WPF.ViewModels
 
                     // Find the parent AreaDefinition (selected from the dropdown) to add the new room to.
                     // Use viewModel.SelectedArea instead of searching by name
-                    var parentArea = viewModel.SelectedArea; 
+                    var parentArea = viewModel.SelectedArea;
                     if (parentArea != null)
                     {
                         parentArea.Rooms.Add(newRoom);
@@ -1526,6 +1610,6 @@ namespace Axis2.WPF.ViewModels
             }
         }
 
-        
+
     }
 }

@@ -23,7 +23,10 @@
         </Grid.ColumnDefinitions>
 
         <!-- TreeView for Categories -->
-        <TreeView Grid.Column="0" ItemsSource="{Binding Categories}">
+        <TreeView Grid.Column="0" ItemsSource="{Binding Categories}"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                  ScrollViewer.CanContentScroll="True">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type models:Category}" ItemsSource="{Binding SubSections}">
                     <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
@@ -72,15 +75,34 @@
 
         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
 
-        <!-- ListView for Items -->
-        <ListView Grid.Column="2" ItemsSource="{Binding DisplayedItems}" SelectedItem="{Binding SelectedItem}">
-            <ListView.View>
-                <GridView AllowsColumnReorder="True">
-                    <GridViewColumn Header="NPC/Group" DisplayMemberBinding="{Binding Description}" Width="150"/>
-                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding Id}" Width="80"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <!-- Search + ListView for NPCs -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" Margin="0,0,0,4" Padding="8,5" CornerRadius="6"
+                    Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="🔍" VerticalAlignment="Center" Margin="2,0,8,0" FontSize="14"/>
+                    <TextBox Grid.Column="1" VerticalAlignment="Center" BorderThickness="0" Background="Transparent"
+                             Text="{Binding InlineSearchText, UpdateSourceTrigger=PropertyChanged, Delay=150}"
+                             ToolTip="Search all NPCs by name or hex body id (live)"/>
+                </Grid>
+            </Border>
+            <ListView Grid.Row="1" ItemsSource="{Binding DisplayedItems}" SelectedItem="{Binding SelectedItem}">
+                <ListView.View>
+                    <GridView AllowsColumnReorder="True">
+                        <GridViewColumn Header="NPC/Group" DisplayMemberBinding="{Binding Description}" Width="150"/>
+                        <GridViewColumn Header="ID" DisplayMemberBinding="{Binding Id}" Width="80"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
 
         <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
 

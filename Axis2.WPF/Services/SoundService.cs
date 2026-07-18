@@ -71,7 +71,6 @@ namespace Axis2.WPF.Services
                                 byte[] nameBytes = brMul.ReadBytes(SoundNameLength);
                                 string name = Encoding.ASCII.GetString(nameBytes).TrimEnd('\0');
                                 sound.Name = name;
-                                //Logger.Log($"DEBUG: Sound ID {id}, Offset {startOffset}, Length {length}, Name: '{name}'");
                             }
                             else
                             {
@@ -83,7 +82,6 @@ namespace Axis2.WPF.Services
                         }
                         else
                         {
-                            //Logger.Log($"DEBUG: Sound ID {id} has invalid length (0xFFFFFFFF), skipping.");
                         }
                     }
                     catch (EndOfStreamException)

@@ -7,18 +7,18 @@ using System.Windows.Data;
 namespace Axis2.WPF.Models
 {
     public abstract class MapRegion : ViewModelBase
+    {
+        private string _name = string.Empty; // Backing field for Name
+        public string Name
         {
-            private string _name = string.Empty; // Backing field for Name
-            public string Name
-            {
-                get => _name;
-                set => SetProperty(ref _name, value);
-            }
+            get => _name;
+            set => SetProperty(ref _name, value);
+        }
         public string Group { get; set; } = string.Empty;
         public List<Rect> Rects { get; set; } = new List<Rect>();
         public System.Windows.Point P { get; set; }
-        public int Z { get; set; } // Added Z coordinate
-        public int Map { get; set; } // Added Map number
+        public int Z { get; set; }
+        public int Map { get; set; }
 
         private bool _isExpanded;
         public bool IsExpanded
@@ -51,8 +51,8 @@ namespace Axis2.WPF.Models
         }
     }
 
-    public class RoomDefinition : MapRegion, System.IEquatable<RoomDefinition> 
-    { 
+    public class RoomDefinition : MapRegion, System.IEquatable<RoomDefinition>
+    {
         public string DefName { get; set; } = string.Empty;
 
         public bool Equals(RoomDefinition other)

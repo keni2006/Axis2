@@ -9,7 +9,7 @@ namespace Axis2.WPF.ViewModels.Settings
     {
         private string _fileName;
         private string _filePath;
-        private string _originalFilePath; // New property
+        private string _originalFilePath;
 
         public string FileName
         {
@@ -23,7 +23,7 @@ namespace Axis2.WPF.ViewModels.Settings
             set => SetProperty(ref _filePath, value);
         }
 
-        public string OriginalFilePath // New property
+        public string OriginalFilePath
         {
             get => _originalFilePath;
             set => SetProperty(ref _originalFilePath, value);
@@ -117,7 +117,7 @@ namespace Axis2.WPF.ViewModels.Settings
             return SelectedFilePathItem != null;
         }
 
-        public void ResetPath() // Changed to public
+        public void ResetPath()
         {
             if (SelectedFilePathItem != null)
             {
@@ -146,7 +146,7 @@ namespace Axis2.WPF.ViewModels.Settings
                 FilePaths.Add(new FilePathItem { FileName = $"statics{i}.mul", FilePath = baseMulPath + $"statics{i}.mul", OriginalFilePath = baseMulPath + $"statics{i}.mul" });
                 FilePaths.Add(new FilePathItem { FileName = $"staidx{i}.mul", FilePath = baseMulPath + $"staidx{i}.mul", OriginalFilePath = baseMulPath + $"staidx{i}.mul" });
             }
-            
+
             FilePaths.Add(new FilePathItem { FileName = "art.mul", FilePath = baseMulPath + "art.mul", OriginalFilePath = baseMulPath + "art.mul" });
             FilePaths.Add(new FilePathItem { FileName = "anim.mul", FilePath = baseMulPath + "anim.mul", OriginalFilePath = baseMulPath + "anim.mul" });
             FilePaths.Add(new FilePathItem { FileName = "gump.mul", FilePath = baseMulPath + "gump.mul", OriginalFilePath = baseMulPath + "gump.mul" });

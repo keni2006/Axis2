@@ -162,7 +162,7 @@ namespace Axis2.WPF.ViewModels
                 }
             }
         }
-        
+
         private double fmod(double a, double b)
         {
             return a - Math.Floor(a / b) * b;
@@ -172,7 +172,7 @@ namespace Axis2.WPF.ViewModels
         private void LoadLightData()
         {
             LightColorItems.Clear();
-            
+
             var lightMulItems = _lightDataService.LightMulItems.GroupBy(lm => lm.Id).ToDictionary(g => g.Key, g => g.First());
             var drawConfigs = _lightDataService.DrawConfigs.ToDictionary(dc => dc.Id);
 

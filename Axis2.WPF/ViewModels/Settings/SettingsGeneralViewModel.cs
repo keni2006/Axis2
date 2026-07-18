@@ -17,7 +17,7 @@ namespace Axis2.WPF.ViewModels.Settings
         private string _commandPrefix;
         private string _uoTitle;
         private string _selectedStartTab;
-        
+
         public bool AllowMultipleInstances
         {
             get => _allowMultipleInstances;
@@ -70,7 +70,7 @@ namespace Axis2.WPF.ViewModels.Settings
 
         [JsonIgnore]
         public ICommand ResetGeneralSettingsCommand { get; }
-        
+
 
         public SettingsGeneralViewModel()
         {
@@ -90,7 +90,7 @@ namespace Axis2.WPF.ViewModels.Settings
             };
 
             ResetGeneralSettingsCommand = new RelayCommand(ResetGeneralSettings);
-            
+
         }
 
         public void ResetGeneralSettings()
@@ -105,6 +105,6 @@ namespace Axis2.WPF.ViewModels.Settings
             SelectedStartTab = "General";
         }
 
-        
+
     }
 }

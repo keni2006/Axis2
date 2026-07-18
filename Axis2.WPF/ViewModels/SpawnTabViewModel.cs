@@ -28,13 +28,42 @@ namespace Axis2.WPF.ViewModels
         private readonly IUoClient _uoClient;
         private readonly MobTypesService _mobTypesService;
         private readonly AnimationManager _animationManager;
-        private readonly BodyDefService _bodyDefService; // Ajout du service
+        private readonly BodyDefService _bodyDefService;
         private string _scriptsPath;
         private bool _isMemberSelection = false;
 
         public ObservableCollection<Category> Categories { get; } = new();
         public ObservableCollection<SObject> DisplayedItems { get; } = new();
         public ObservableCollection<SpawnGroupMemberViewModel> SpawnGroupMembers { get; } = new();
+
+        private string _inlineSearchText = string.Empty;
+        // Live inline search across every parsed NPC/spawn (by name or hex id). Empty => tree selection.
+        public string InlineSearchText
+        {
+            get => _inlineSearchText;
+            set { if (SetProperty(ref _inlineSearchText, value)) ApplyInlineSearch(); }
+        }
+
+        private void ApplyInlineSearch()
+        {
+            var term = _inlineSearchText?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(term))
+            {
+                _isShowingSearchResults = false;
+                UpdateDisplayedItems();
+                return;
+            }
+
+            DisplayedItems.Clear();
+            var matches = Categories
+                .SelectMany(c => c.SubSections.SelectMany(s => s.Items))
+                .Where(i => (i.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)
+                         || (i.Id?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+                .Take(1000);
+            foreach (var item in matches)
+                DisplayedItems.Add(item);
+            _isShowingSearchResults = true;
+        }
 
         private object _selectedTreeItem;
 
@@ -365,6 +394,14 @@ namespace Axis2.WPF.ViewModels
                 return;
             }
 
+            // Web profile: pull NPCs from the Axis Sphere51 Data Server (values only).
+            if (loadedProfile.IsWebProfile)
+            {
+                if (!string.IsNullOrWhiteSpace(loadedProfile.URL))
+                    LoadNpcsFromWeb(loadedProfile.URL, loadedProfile.Username, loadedProfile.Password);
+                return;
+            }
+
             var scriptFiles = new List<string>();
 
             if (!loadedProfile.IsWebProfile && loadedProfile.SelectedScripts != null && loadedProfile.SelectedScripts.Any())
@@ -389,11 +426,38 @@ namespace Axis2.WPF.ViewModels
                 }
             }
 
-            var categorizedItems = _scriptParser.Categorize(allItems.Where(item => item.Type == SObjectType.Npc || item.Type == SObjectType.SpawnGroup).ToList());
-
+            var npcList = allItems.Where(item => item.Type == SObjectType.Npc || item.Type == SObjectType.SpawnGroup).ToList();
+            var categorizedItems = _scriptParser.Categorize(npcList);
             foreach (var category in categorizedItems)
             {
                 Categories.Add(category);
+            }
+            TotalNpcCount = npcList.Count;
+        }
+
+        private int _totalNpcCount;
+        public int TotalNpcCount
+        {
+            get => _totalNpcCount;
+            set => SetProperty(ref _totalNpcCount, value);
+        }
+
+        // Loads NPCs from an Axis Sphere51 Data Server (values only, never raw scripts).
+        private async Task LoadNpcsFromWeb(string url, string username, string password)
+        {
+            try
+            {
+                var npcs = await Services.WebDataService.FetchAsync(url, "npcs", username, password);
+                var categorized = _scriptParser.Categorize(npcs);
+                Categories.Clear();
+                foreach (var category in categorized)
+                    Categories.Add(category);
+                TotalNpcCount = npcs.Count;
+                Logger.Log($"DEBUG: SpawnTabViewModel - Loaded {npcs.Count} NPCs from web profile.");
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"ERROR: SpawnTabViewModel - Web profile load failed: {ex.Message}");
             }
         }
 
@@ -486,7 +550,7 @@ namespace Axis2.WPF.ViewModels
                     else
                     {
                         Logger.Log($"WARNING: UpdateItemImage - GetBodyAnimation returned null for itemId {itemId}");
-                        ItemImage = null; 
+                        ItemImage = null;
                     }
                 }
             }
@@ -530,10 +594,10 @@ namespace Axis2.WPF.ViewModels
             {
                 DisplayedItems.Add(item);
             }
-                                    _isShowingSearchResults = true; // Set flag after search
+            _isShowingSearchResults = true; // Set flag after search
         }
-        
-    public IEnumerable<string> GetUniqueScriptTypes()
+
+        public IEnumerable<string> GetUniqueScriptTypes()
         {
             return Categories.SelectMany(c => c.SubSections.SelectMany(s => s.Items))
                              .Where(item => !string.IsNullOrEmpty(item.ScriptType))

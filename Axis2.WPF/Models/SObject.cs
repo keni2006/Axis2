@@ -39,10 +39,10 @@ namespace Axis2.WPF.Models
         public string DisplayId { get => _displayId; set { _displayId = value; OnPropertyChanged(nameof(DisplayId)); } }
         public string Color { get => _color; set { _color = value; OnPropertyChanged(nameof(Color)); } }
         public string DupeItem { get => _dupeItem; set { _dupeItem = value; OnPropertyChanged(nameof(DupeItem)); } }
-        public string DupeList { get => _dupeList; set { _dupeList = value; OnPropertyChanged(nameof(DupeList)); } } // New public property
+        public string DupeList { get => _dupeList; set { _dupeList = value; OnPropertyChanged(nameof(DupeList)); } }
         public string FileName { get => _fileName; set { _fileName = value; OnPropertyChanged(nameof(FileName)); } }
         public string ExplicitDefName { get => _explicitDefName; set { _explicitDefName = value; OnPropertyChanged(nameof(ExplicitDefName)); } }
-        public string ScriptType { get => _scriptType; set { _scriptType = value; OnPropertyChanged(nameof(ScriptType)); } } // New public property
+        public string ScriptType { get => _scriptType; set { _scriptType = value; OnPropertyChanged(nameof(ScriptType)); } }
         public SObjectType Type { get => _type; set { _type = value; OnPropertyChanged(nameof(Type)); } }
 
         public SpawnGroup? Group { get; set; } // New property for SpawnGroup data

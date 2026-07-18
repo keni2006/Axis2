@@ -12,7 +12,7 @@ namespace Axis2.WPF.Services
         public List<MusicTrack> LoadMusicTracks(string musicDirectory)
         {
             List<MusicTrack> resultTracks = new List<MusicTrack>();
-            
+
             // Map to store ID -> Name/FileName from config.txt
             Dictionary<int, string> configIdToNameMap = new Dictionary<int, string>();
             // Map to store FileName (without extension) -> Full Path from actual MP3 files

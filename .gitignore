@@ -361,3 +361,15 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Axis Sphere51 data server — published self-contained build (~100MB, rebuild via dotnet publish)
+AxisSphere51Server/dist/
+
+# Packaged single-file binaries
+Package/
+
+# Personal runtime config (created by the app at runtime — not source)
+profiles.json
+settings.json
+**/profiles.json
+**/settings.json
+**/axis2_wpf_debug.log

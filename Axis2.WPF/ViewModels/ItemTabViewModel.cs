@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using Axis2.WPF.Extensions;
 using MessageBox = System.Windows.MessageBox;
-using Axis2.WPF.Views.Dialogs; // Added for SaveCustomListDialog
+using Axis2.WPF.Views.Dialogs;
 using System.Windows.Threading; // For DispatcherTimer
 using System.Diagnostics; // For Stopwatch
 using System.Windows.Media; // For DrawingVisual, RenderTargetBitmap, TransformGroup, ScaleTransform, RotateTransform
@@ -24,7 +24,7 @@ namespace Axis2.WPF.ViewModels
 {
     public class ItemTabViewModel : BindableBase, IHandler<ProfileLoadedEvent>
     {
-        
+
 
         private readonly MulFileManager _mulFileManager;
         private readonly ScriptParser _scriptParser;
@@ -38,6 +38,35 @@ namespace Axis2.WPF.ViewModels
         public ObservableCollection<Category> Categories { get; } = new();
         public ObservableCollection<SObject> DisplayedItems { get; } = new();
         public ObservableCollection<CustomItemList> CustomItemLists { get; } = new();
+
+        private string _inlineSearchText = string.Empty;
+        // Live inline search across every parsed item (by description or hex id). Empty => tree selection.
+        public string InlineSearchText
+        {
+            get => _inlineSearchText;
+            set { if (SetProperty(ref _inlineSearchText, value)) ApplyInlineSearch(); }
+        }
+
+        private void ApplyInlineSearch()
+        {
+            var term = _inlineSearchText?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(term))
+            {
+                _isShowingSearchResults = false;
+                UpdateDisplayedItems();
+                return;
+            }
+
+            DisplayedItems.Clear();
+            var matches = Categories
+                .SelectMany(c => c.SubSections.SelectMany(s => s.Items))
+                .Where(i => (i.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)
+                         || (i.Id?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+                .Take(1000);
+            foreach (var item in matches)
+                DisplayedItems.Add(item);
+            _isShowingSearchResults = true;
+        }
 
         private object _selectedTreeItem;
         public object SelectedTreeItem
@@ -263,8 +292,8 @@ namespace Axis2.WPF.ViewModels
             }
         }
 
-        public double ItemImageXOffset => 0; // Placeholder for now
-        public double ItemImageYOffset => 0; // Placeholder for now
+        public double ItemImageXOffset => 0;
+        public double ItemImageYOffset => 0;
 
         public ItemTabViewModel(MulFileManager mulFileManager, ScriptParser scriptParser, EventAggregator eventAggregator, IUoClient uoClient, Settings.SettingsItemTabViewModel settingsItemTabViewModel, LightDataService lightDataService, UoArtService uoArtService, ISettingsService settingsService)
         {
@@ -331,13 +360,12 @@ namespace Axis2.WPF.ViewModels
             };
         }
 
-        
+
 
         private void OnCreate()
         {
             if (SelectedItem == null)
             {
-                //System.Windows.MessageBox.Show("No item selected.", "Error");
                 return;
             }
             string command = LockItem ? $"static {SelectedItem.Id}" : $"add {SelectedItem.Id}";
@@ -348,7 +376,6 @@ namespace Axis2.WPF.ViewModels
         {
             if (SelectedItem == null)
             {
-                //System.Windows.MessageBox.Show("No item selected.", "Error");
                 return;
             }
             string command = $"tile {ZCoordinate} {SelectedItem.Id}";
@@ -394,19 +421,19 @@ namespace Axis2.WPF.ViewModels
             {
                 case "Move1": // Up
                     command = $"xmove -{moveValue} -{moveValue}";
-                    
+
                     break;
                 case "Move2": // Up-Right
                     command = $"xmove 0 -{moveValue}";
-                    
+
                     break;
                 case "Move3": // Right
                     command = $"xmove {moveValue} -{moveValue}";
-                    
+
                     break;
                 case "Move4": // Down-Right
                     command = $"xmove {moveValue} 0";
-                    
+
                     break;
                 case "Move5": // Down
                     command = $"xmove {moveValue} {moveValue}";
@@ -414,15 +441,15 @@ namespace Axis2.WPF.ViewModels
                     break;
                 case "Move6": // Down-Left
                     command = $"xmove 0 {moveValue}";
-                    
+
                     break;
                 case "Move7": // Left
                     command = $"xmove -{moveValue} {moveValue}";
-                   
+
                     break;
                 case "Move8": // Up-Left
                     command = $"xmove -{moveValue} 0";
-                    
+
                     break;
             }
             _uoClient.SendToClient(command);
@@ -498,7 +525,7 @@ namespace Axis2.WPF.ViewModels
             _uoClient.SendToClient($"act.morep {iMinTime} {iMaxTime} {iMaxDist}");
             await Task.Delay(Constants.SPAWN_MESSAGE_DELAY);
 
-           
+
 
             _uoClient.SendToClient($"act.attr {Constants.ATTR_INVIS | Constants.ATTR_MAGIC | Constants.ATTR_MOVE_NEVER:X4}");
             await Task.Delay(Constants.SPAWN_MESSAGE_DELAY);
@@ -647,6 +674,16 @@ namespace Axis2.WPF.ViewModels
                 return;
             }
 
+            // Web profile: pull items from the Axis Sphere51 Data Server instead of local scripts.
+            if (loadedProfile.IsWebProfile)
+            {
+                if (!string.IsNullOrWhiteSpace(loadedProfile.URL))
+                    LoadItemsFromWeb(loadedProfile.URL, loadedProfile.Username, loadedProfile.Password);
+                else
+                    Logger.Log("ERROR: ItemTabViewModel - Web profile has no URL.");
+                return;
+            }
+
             var scriptFiles = new List<string>();
 
             if (!loadedProfile.IsWebProfile && loadedProfile.SelectedScripts != null && loadedProfile.SelectedScripts.Any())
@@ -669,24 +706,51 @@ namespace Axis2.WPF.ViewModels
             foreach (var file in scriptFiles)
             {
                 if (File.Exists(file))
-                {
-                    Logger.Log($"DEBUG: ItemTabViewModel - Parsing file: {file}");
                     allItems.AddRange(_scriptParser.ParseFile(file));
-                }
                 else
-                {
                     Logger.Log($"WARNING: ItemTabViewModel - Script file not found: {file}");
-                }
             }
 
             var itemDefs = allItems.Where(item => item.Type == SObjectType.Item).ToList();
             var categorizedItems = _scriptParser.Categorize(itemDefs);
-
             foreach (var category in categorizedItems)
             {
                 Categories.Add(category);
             }
+            TotalItemCount = itemDefs.Count;
             Logger.Log($"DEBUG: ItemTabViewModel - Finished loading and categorizing {itemDefs.Count} items.");
+        }
+
+        private int _totalItemCount;
+        public int TotalItemCount
+        {
+            get => _totalItemCount;
+            set => SetProperty(ref _totalItemCount, value);
+        }
+
+        // Loads items from an Axis Sphere51 Data Server. The server only ever returns
+        // parsed values (id, description, category, …) — never the raw script text.
+        private async Task LoadItemsFromWeb(string url, string username, string password)
+        {
+            try
+            {
+                Logger.Log($"DEBUG: ItemTabViewModel - Fetching items from web profile '{url}'.");
+                var items = await Services.WebDataService.FetchAsync(url, "items", username, password);
+                var categorized = _scriptParser.Categorize(items);
+                Categories.Clear();
+                foreach (var category in categorized)
+                    Categories.Add(category);
+                TotalItemCount = items.Count;
+                Logger.Log($"DEBUG: ItemTabViewModel - Loaded {items.Count} items from web profile.");
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"ERROR: ItemTabViewModel - Web profile load failed: {ex.Message}");
+                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                    System.Windows.MessageBox.Show(
+                        $"Could not load items from server:\n{url}\n\n{ex.Message}",
+                        "Web Profile", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning));
+            }
         }
 
         private void UpdateDisplayedItems()
@@ -1009,7 +1073,7 @@ namespace Axis2.WPF.ViewModels
         }
 
 
-    public IEnumerable<string> GetUniqueScriptTypes()
+        public IEnumerable<string> GetUniqueScriptTypes()
         {
             return Categories.SelectMany(c => c.SubSections.SelectMany(s => s.Items))
                              .Where(item => !string.IsNullOrEmpty(item.ScriptType))
@@ -1065,4 +1129,4 @@ namespace Axis2.WPF.ViewModels
         }
     }
 }
-    
+

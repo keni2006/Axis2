@@ -80,125 +80,125 @@ namespace Axis2.WPF.ViewModels
             _uoClientCommunicator = uoClientCommunicator;
             _dialogService = dialogService;
 
-            AdminCommand = new RelayCommand(async () => await Admin());
-            InfoCommand = new RelayCommand(async () => await Info());
-            EditCommand = new RelayCommand(async () => await Edit());
-            ClientsCommand = new RelayCommand(async () => await Clients());
-            ServerInfoCommand = new RelayCommand(async () => await ServerInfo());
-            VersionCommand = new RelayCommand(async () => await Version());
-            LinkCommand = new RelayCommand(async () => await Link());
-            FlipCommand = new RelayCommand(async () => await Flip());
-            ShrinkCommand = new RelayCommand(async () => await Shrink());
-            DupeCommand = new RelayCommand(async () => await Dupe());
-            RemoveCommand = new RelayCommand(async () => await Remove());
-            NukeCommand = new RelayCommand(async () => await Nuke());
-            BuyCommand = new RelayCommand(async () => await Buy());
-            SellCommand = new RelayCommand(async () => await Sell());
-            InventoryCommand = new RelayCommand(async () => await Inventory());
-            PurchasesCommand = new RelayCommand(async () => await Purchases());
-            SamplesCommand = new RelayCommand(async () => await Samples());
-            RestockCommand = new RelayCommand(async () => await Restock());
-            SnowCommand = new RelayCommand(async () => await Snow());
-            RainCommand = new RelayCommand(async () => await Rain());
-            DryCommand = new RelayCommand(async () => await Dry());
-            SetLightCommand = new RelayCommand(async () => await SetLight());
-            InvulnerableCommand = new RelayCommand(async () => await Invulnerable());
-            AllmoveCommand = new RelayCommand(async () => await Allmove());
-            InvisibleCommand = new RelayCommand(async () => await Invisible());
-            FixCommand = new RelayCommand(async () => await Fix());
-            TeleCommand = new RelayCommand(async () => await Tele());
-            HearAllCommand = new RelayCommand(async () => await HearAll());
-            GmToggleCommand = new RelayCommand(async () => await GmToggle());
-            DetailsCommand = new RelayCommand(async () => await Details());
-            NightSightCommand = new RelayCommand(async () => await Nightsight());
-            DebugCommand = new RelayCommand(async () => await Debug());
-            JailCommand = new RelayCommand(async () => await Jail());
-            ForgiveCommand = new RelayCommand(async () => await Forgive());
-            KillCommand = new RelayCommand(async () => await Kill());
-            DisconnectCommand = new RelayCommand(async () => await Disconnect());
-            ResurrectCommand = new RelayCommand(async () => await Resurrect());
-            PageOnCommand = new RelayCommand(async () => await PageOn());
-            PageListCommand = new RelayCommand(async () => await PageList());
-            PagePlayerCommand = new RelayCommand(async () => await PagePlayer());
-            PageDisconnectCommand = new RelayCommand(async () => await PageDisconnect());
-            PageKickCommand = new RelayCommand(async () => await PageKick());
-            PageOffCommand = new RelayCommand(async () => await PageOff());
-            PageQueueCommand = new RelayCommand(async () => await PageQueue());
-            PageOriginCommand = new RelayCommand(async () => await PageOrigin());
-            PageJailCommand = new RelayCommand(async () => await PageJail());
-            PageDeleteCommand = new RelayCommand(async () => await PageDelete());
-            WorldSaveCommand = new RelayCommand(async () => await WorldSave());
-            SaveStaticsCommand = new RelayCommand(async () => await SaveStatics());
-            ResyncCommand = new RelayCommand(async () => await Resync());
-            RestockAllCommand = new RelayCommand(async () => await RestockAll());
+            AdminCommand = new RelayCommand(async () => await AdminAsync());
+            InfoCommand = new RelayCommand(async () => await InfoAsync());
+            EditCommand = new RelayCommand(async () => await EditAsync());
+            ClientsCommand = new RelayCommand(async () => await ClientsAsync());
+            ServerInfoCommand = new RelayCommand(async () => await ServerInfoAsync());
+            VersionCommand = new RelayCommand(async () => await VersionAsync());
+            LinkCommand = new RelayCommand(async () => await LinkAsync());
+            FlipCommand = new RelayCommand(async () => await FlipAsync());
+            ShrinkCommand = new RelayCommand(async () => await ShrinkAsync());
+            DupeCommand = new RelayCommand(async () => await DupeAsync());
+            RemoveCommand = new RelayCommand(async () => await RemoveAsync());
+            NukeCommand = new RelayCommand(async () => await NukeAsync());
+            BuyCommand = new RelayCommand(async () => await BuyAsync());
+            SellCommand = new RelayCommand(async () => await SellAsync());
+            InventoryCommand = new RelayCommand(async () => await InventoryAsync());
+            PurchasesCommand = new RelayCommand(async () => await PurchasesAsync());
+            SamplesCommand = new RelayCommand(async () => await SamplesAsync());
+            RestockCommand = new RelayCommand(async () => await RestockAsync());
+            SnowCommand = new RelayCommand(async () => await SnowAsync());
+            RainCommand = new RelayCommand(async () => await RainAsync());
+            DryCommand = new RelayCommand(async () => await DryAsync());
+            SetLightCommand = new RelayCommand(async () => await SetLightAsync());
+            InvulnerableCommand = new RelayCommand(async () => await InvulnerableAsync());
+            AllmoveCommand = new RelayCommand(async () => await AllmoveAsync());
+            InvisibleCommand = new RelayCommand(async () => await InvisibleAsync());
+            FixCommand = new RelayCommand(async () => await FixAsync());
+            TeleCommand = new RelayCommand(async () => await TeleAsync());
+            HearAllCommand = new RelayCommand(async () => await HearAllAsync());
+            GmToggleCommand = new RelayCommand(async () => await GmToggleAsync());
+            DetailsCommand = new RelayCommand(async () => await DetailsAsync());
+            NightSightCommand = new RelayCommand(async () => await NightsightAsync());
+            DebugCommand = new RelayCommand(async () => await DebugAsync());
+            JailCommand = new RelayCommand(async () => await JailAsync());
+            ForgiveCommand = new RelayCommand(async () => await ForgiveAsync());
+            KillCommand = new RelayCommand(async () => await KillAsync());
+            DisconnectCommand = new RelayCommand(async () => await DisconnectAsync());
+            ResurrectCommand = new RelayCommand(async () => await ResurrectAsync());
+            PageOnCommand = new RelayCommand(async () => await PageOnAsync());
+            PageListCommand = new RelayCommand(async () => await PageListAsync());
+            PagePlayerCommand = new RelayCommand(async () => await PagePlayerAsync());
+            PageDisconnectCommand = new RelayCommand(async () => await PageDisconnectAsync());
+            PageKickCommand = new RelayCommand(async () => await PageKickAsync());
+            PageOffCommand = new RelayCommand(async () => await PageOffAsync());
+            PageQueueCommand = new RelayCommand(async () => await PageQueueAsync());
+            PageOriginCommand = new RelayCommand(async () => await PageOriginAsync());
+            PageJailCommand = new RelayCommand(async () => await PageJailAsync());
+            PageDeleteCommand = new RelayCommand(async () => await PageDeleteAsync());
+            WorldSaveCommand = new RelayCommand(async () => await WorldSaveAsync());
+            SaveStaticsCommand = new RelayCommand(async () => await SaveStaticsAsync());
+            ResyncCommand = new RelayCommand(async () => await ResyncAsync());
+            RestockAllCommand = new RelayCommand(async () => await RestockAllAsync());
         }
 
-        private async Task Admin() => await _uoClientCommunicator.SendToUOAsync("admin");
-        private async Task Info() => await _uoClientCommunicator.SendToUOAsync("info");
-        private async Task Edit() => await _uoClientCommunicator.SendToUOAsync("xedit");
-        private async Task Clients() => await _uoClientCommunicator.SendToUOAsync("show serv.clients");
-        private async Task ServerInfo() => await _uoClientCommunicator.SendToUOAsync("information");
-        private async Task Version() => await _uoClientCommunicator.SendToUOAsync("version");
-        private async Task Link() => await _uoClientCommunicator.SendToUOAsync("link");
-        private async Task Flip() => await _uoClientCommunicator.SendToUOAsync("xflip");
-        private async Task Shrink() => await _uoClientCommunicator.SendToUOAsync("shrink");
-        private async Task Dupe() => await _uoClientCommunicator.SendToUOAsync("dupe");
-        private async Task Remove() => await _uoClientCommunicator.SendToUOAsync("remove");
-        private async Task Nuke() => await _uoClientCommunicator.SendToUOAsync("nuke");
-        private async Task Buy() => await _uoClientCommunicator.SendToUOAsync("buy");
-        private async Task Sell() => await _uoClientCommunicator.SendToUOAsync("sell");
-        private async Task Inventory() => await _uoClientCommunicator.SendToUOAsync("bank 1a");
-        private async Task Purchases() => await _uoClientCommunicator.SendToUOAsync("bank 1b");
-        private async Task Samples() => await _uoClientCommunicator.SendToUOAsync("bank 1c");
-        private async Task Restock() => await _uoClientCommunicator.SendToUOAsync("xrestock");
-        private async Task Snow() => await _uoClientCommunicator.SendToUOAsync("sector.snow");
-        private async Task Rain() => await _uoClientCommunicator.SendToUOAsync("sector.rain");
-        private async Task Dry() => await _uoClientCommunicator.SendToUOAsync("sector.dry");
-        private async Task SetLight() => await _uoClientCommunicator.SendToUOAsync($"sector.light {LightLevel}");
-        private async Task Invulnerable() => await _uoClientCommunicator.SendToUOAsync("invulnerable");
-        private async Task Allmove() => await _uoClientCommunicator.SendToUOAsync("allmove");
-        private async Task Invisible() => await _uoClientCommunicator.SendToUOAsync("invisible");
-        private async Task Fix() => await _uoClientCommunicator.SendToUOAsync("fix");
-        private async Task Tele() => await _uoClientCommunicator.SendToUOAsync("tele");
-        private async Task HearAll() => await _uoClientCommunicator.SendToUOAsync("hearall");
-        private async Task GmToggle() => await _uoClientCommunicator.SendToUOAsync("gm");
-        private async Task Details() => await _uoClientCommunicator.SendToUOAsync("detail");
-        private async Task Nightsight() => await _uoClientCommunicator.SendToUOAsync("nightsight");
-        private async Task Debug() => await _uoClientCommunicator.SendToUOAsync("debug");
-        private async Task Jail() => await _uoClientCommunicator.SendToUOAsync("jail");
-        private async Task Forgive() => await _uoClientCommunicator.SendToUOAsync("forgive");
-        private async Task Kill() => await _uoClientCommunicator.SendToUOAsync("kill");
-        private async Task Disconnect() => await _uoClientCommunicator.SendToUOAsync("xdisconnect");
-        private async Task Resurrect() => await _uoClientCommunicator.SendToUOAsync("xresurrect");
-        private async Task PageOn() => await _uoClientCommunicator.SendToUOAsync("page on");
-        private async Task PageList() => await _uoClientCommunicator.SendToUOAsync("page list");
-        private async Task PagePlayer() => await _uoClientCommunicator.SendToUOAsync("page player");
-        private async Task PageDisconnect()
+        private async Task AdminAsync() => await _uoClientCommunicator.SendToUOAsync("admin");
+        private async Task InfoAsync() => await _uoClientCommunicator.SendToUOAsync("info");
+        private async Task EditAsync() => await _uoClientCommunicator.SendToUOAsync("xedit");
+        private async Task ClientsAsync() => await _uoClientCommunicator.SendToUOAsync("show serv.clients");
+        private async Task ServerInfoAsync() => await _uoClientCommunicator.SendToUOAsync("information");
+        private async Task VersionAsync() => await _uoClientCommunicator.SendToUOAsync("version");
+        private async Task LinkAsync() => await _uoClientCommunicator.SendToUOAsync("link");
+        private async Task FlipAsync() => await _uoClientCommunicator.SendToUOAsync("xflip");
+        private async Task ShrinkAsync() => await _uoClientCommunicator.SendToUOAsync("shrink");
+        private async Task DupeAsync() => await _uoClientCommunicator.SendToUOAsync("dupe");
+        private async Task RemoveAsync() => await _uoClientCommunicator.SendToUOAsync("remove");
+        private async Task NukeAsync() => await _uoClientCommunicator.SendToUOAsync("nuke");
+        private async Task BuyAsync() => await _uoClientCommunicator.SendToUOAsync("buy");
+        private async Task SellAsync() => await _uoClientCommunicator.SendToUOAsync("sell");
+        private async Task InventoryAsync() => await _uoClientCommunicator.SendToUOAsync("bank 1a");
+        private async Task PurchasesAsync() => await _uoClientCommunicator.SendToUOAsync("bank 1b");
+        private async Task SamplesAsync() => await _uoClientCommunicator.SendToUOAsync("bank 1c");
+        private async Task RestockAsync() => await _uoClientCommunicator.SendToUOAsync("xrestock");
+        private async Task SnowAsync() => await _uoClientCommunicator.SendToUOAsync("sector.snow");
+        private async Task RainAsync() => await _uoClientCommunicator.SendToUOAsync("sector.rain");
+        private async Task DryAsync() => await _uoClientCommunicator.SendToUOAsync("sector.dry");
+        private async Task SetLightAsync() => await _uoClientCommunicator.SendToUOAsync($"sector.light {LightLevel}");
+        private async Task InvulnerableAsync() => await _uoClientCommunicator.SendToUOAsync("invulnerable");
+        private async Task AllmoveAsync() => await _uoClientCommunicator.SendToUOAsync("allmove");
+        private async Task InvisibleAsync() => await _uoClientCommunicator.SendToUOAsync("invisible");
+        private async Task FixAsync() => await _uoClientCommunicator.SendToUOAsync("fix");
+        private async Task TeleAsync() => await _uoClientCommunicator.SendToUOAsync("tele");
+        private async Task HearAllAsync() => await _uoClientCommunicator.SendToUOAsync("hearall");
+        private async Task GmToggleAsync() => await _uoClientCommunicator.SendToUOAsync("gm");
+        private async Task DetailsAsync() => await _uoClientCommunicator.SendToUOAsync("detail");
+        private async Task NightsightAsync() => await _uoClientCommunicator.SendToUOAsync("nightsight");
+        private async Task DebugAsync() => await _uoClientCommunicator.SendToUOAsync("debug");
+        private async Task JailAsync() => await _uoClientCommunicator.SendToUOAsync("jail");
+        private async Task ForgiveAsync() => await _uoClientCommunicator.SendToUOAsync("forgive");
+        private async Task KillAsync() => await _uoClientCommunicator.SendToUOAsync("kill");
+        private async Task DisconnectAsync() => await _uoClientCommunicator.SendToUOAsync("xdisconnect");
+        private async Task ResurrectAsync() => await _uoClientCommunicator.SendToUOAsync("xresurrect");
+        private async Task PageOnAsync() => await _uoClientCommunicator.SendToUOAsync("page on");
+        private async Task PageListAsync() => await _uoClientCommunicator.SendToUOAsync("page list");
+        private async Task PagePlayerAsync() => await _uoClientCommunicator.SendToUOAsync("page player");
+        private async Task PageDisconnectAsync()
         {
             if (_dialogService.ShowConfirmation("Warning", "Are you sure you want to disconnect the paged player?"))
                 await _uoClientCommunicator.SendToUOAsync("page disconnect");
         }
-        private async Task PageKick()
+        private async Task PageKickAsync()
         {
             if (_dialogService.ShowConfirmation("Warning", "Are you sure you want to ban the paged player?"))
                 await _uoClientCommunicator.SendToUOAsync("page ban");
         }
-        private async Task PageOff() => await _uoClientCommunicator.SendToUOAsync("page off");
-        private async Task PageQueue() => await _uoClientCommunicator.SendToUOAsync("page queue");
-        private async Task PageOrigin() => await _uoClientCommunicator.SendToUOAsync("page origin");
-        private async Task PageJail()
+        private async Task PageOffAsync() => await _uoClientCommunicator.SendToUOAsync("page off");
+        private async Task PageQueueAsync() => await _uoClientCommunicator.SendToUOAsync("page queue");
+        private async Task PageOriginAsync() => await _uoClientCommunicator.SendToUOAsync("page origin");
+        private async Task PageJailAsync()
         {
             if (_dialogService.ShowConfirmation("Warning", "Are you sure you want to jail the paged player?"))
                 await _uoClientCommunicator.SendToUOAsync("page jail");
         }
-        private async Task PageDelete()
+        private async Task PageDeleteAsync()
         {
             if (_dialogService.ShowConfirmation("Warning", "Are you sure you want to delete the page?"))
                 await _uoClientCommunicator.SendToUOAsync("page delete");
         }
-        private async Task WorldSave() => await _uoClientCommunicator.SendToUOAsync("serv.save");
-        private async Task SaveStatics() => await _uoClientCommunicator.SendToUOAsync("serv.savestatics");
-        private async Task Resync() => await _uoClientCommunicator.SendToUOAsync("serv.resync");
-        private async Task RestockAll() => await _uoClientCommunicator.SendToUOAsync("serv.restock");
+        private async Task WorldSaveAsync() => await _uoClientCommunicator.SendToUOAsync("serv.save");
+        private async Task SaveStaticsAsync() => await _uoClientCommunicator.SendToUOAsync("serv.savestatics");
+        private async Task ResyncAsync() => await _uoClientCommunicator.SendToUOAsync("serv.resync");
+        private async Task RestockAllAsync() => await _uoClientCommunicator.SendToUOAsync("serv.restock");
     }
 }

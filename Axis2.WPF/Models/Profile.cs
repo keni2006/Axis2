@@ -10,6 +10,8 @@ namespace Axis2.WPF.Models
         private bool _isWebProfile;
         private string _baseDirectory;
         private string _url;
+        private string _username;
+        private string _password;
         private bool _loadResource;
         private ObservableCollection<ScriptItem> _selectedScripts;
 
@@ -43,6 +45,19 @@ namespace Axis2.WPF.Models
             set => SetProperty(ref _url, value);
         }
 
+        // GM login for a Web Profile (Sphere account). Only PLEVEL above Player is served.
+        public string Username
+        {
+            get => _username;
+            set => SetProperty(ref _username, value);
+        }
+
+        public string Password
+        {
+            get => _password;
+            set => SetProperty(ref _password, value);
+        }
+
         public bool LoadResource
         {
             get => _loadResource;
@@ -61,6 +76,8 @@ namespace Axis2.WPF.Models
             _name = string.Empty;
             _baseDirectory = string.Empty;
             _url = string.Empty;
+            _username = string.Empty;
+            _password = string.Empty;
             _selectedScripts = new ObservableCollection<ScriptItem>();
         }
     }

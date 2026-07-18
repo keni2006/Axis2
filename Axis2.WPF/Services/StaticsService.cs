@@ -15,18 +15,13 @@ namespace Axis2.WPF.Services
 
         public StaticsService(string indexPath, string staticsPath, string radarcolPath)
         {
-            //Logger.Log($"--- StaticsService START Initializing ---");
-            //Logger.Log($"StaticsService: indexPath='{indexPath}'");
-            //Logger.Log($"StaticsService: staticsPath='{staticsPath}'");
-            //Logger.Log($"StaticsService: radarcolPath='{radarcolPath}'");
-            
+
             LoadRadarcol(radarcolPath);
 
             _staidxFileService = new MemoryMappedFileService(indexPath);
             _staticsFileService = new MemoryMappedFileService(staticsPath);
 
             LoadIndices(indexPath);
-           // Logger.Log($"--- StaticsService END Initializing ---");
         }
 
         public void Dispose()
@@ -40,7 +35,6 @@ namespace Axis2.WPF.Services
             _radarcol = new ushort[0x10000];
             if (string.IsNullOrEmpty(path) || !File.Exists(path))
             {
-               // Logger.Log($"Radarcol file not found or path is empty: {path}");
                 return;
             }
 
@@ -54,11 +48,9 @@ namespace Axis2.WPF.Services
                         _radarcol[i] = reader.ReadUInt16();
                     }
                 }
-               // Logger.Log("Radarcol loaded successfully.");
             }
             catch (Exception ex)
             {
-               // Logger.Log($"Error loading radarcol: {ex.Message}");
             }
         }
 
@@ -66,7 +58,6 @@ namespace Axis2.WPF.Services
         {
             if (!_staidxFileService.IsOpen)
             {
-               // Logger.Log($"Statics index file not open: {path}");
                 return;
             }
 
@@ -85,11 +76,9 @@ namespace Axis2.WPF.Services
                         Unknown = _staidxFileService.ReadInt32(offset + 8)
                     };
                 }
-               // Logger.Log($"Statics indices loaded successfully from: {path}");
             }
             catch (Exception ex)
             {
-               // Logger.Log($"Error loading statics indices: {ex.Message}");
             }
         }
 
@@ -112,7 +101,6 @@ namespace Axis2.WPF.Services
 
             if (!_staticsFileService.IsOpen)
             {
-                //Logger.Log($"Statics data file not open.");
                 return tiles;
             }
 
@@ -165,7 +153,6 @@ namespace Axis2.WPF.Services
             }
             catch (Exception ex)
             {
-               // Logger.Log($"Error reading statics for block ({blockX}, {blockY}): {ex.Message}");
             }
 
             return tiles;

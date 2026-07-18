@@ -1,0 +1,6 @@
+@AxisSphere51.Server_HostAddress = http://localhost:5108
+
+GET {{AxisSphere51.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

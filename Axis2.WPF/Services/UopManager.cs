@@ -70,12 +70,12 @@ namespace Axis2.WPF.Services
                         long offset = br.ReadInt64();
                         int compressedSize = br.ReadInt32();
                         int decompressedSize = br.ReadInt32();
-                        
+
                         // The offset in the file is relative to the start of the data, not the file itself.
                         // The C++ code adds dwHeaderLenght, which seems to be a constant 6 bytes of some sort.
                         // For now, we will assume the offset is correct as read.
                         // This might need adjustment based on the actual UOP variant.
-                        
+
                         entries.Add(new UopFileEntry
                         {
                             Hash = hash,

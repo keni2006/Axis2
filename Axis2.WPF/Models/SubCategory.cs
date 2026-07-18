@@ -7,11 +7,11 @@ namespace Axis2.WPF.Models
     {
         private string _name = "";
         private ObservableCollection<SObject> _items = new();
-        private bool _isExpanded; // New property
+        private bool _isExpanded;
 
         public string Name { get => _name; set { _name = value; OnPropertyChanged(nameof(Name)); } }
         public ObservableCollection<SObject> Items { get => _items; set { _items = value; OnPropertyChanged(nameof(Items)); } }
-        public bool IsExpanded { get => _isExpanded; set { _isExpanded = value; OnPropertyChanged(nameof(IsExpanded)); } } // New public property
+        public bool IsExpanded { get => _isExpanded; set { _isExpanded = value; OnPropertyChanged(nameof(IsExpanded)); } }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

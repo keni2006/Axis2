@@ -61,7 +61,7 @@ namespace Axis2.WPF.ViewModels
             {
                 PreviewObjectId = string.Empty;
             }
-            
+
             for (ushort i = 1; i < 3000; i++)
             {
                 var cell = new ColorCellViewModel { ColorIndex = i, Color = _uoArtService.GetColorFromHue(i, 16) };
@@ -146,14 +146,12 @@ namespace Axis2.WPF.ViewModels
 
         private void OnUpdatePreview()
         {
-           // Logger.Log($"[ColorSelectionViewModel] OnUpdatePreview called. PreviewObjectId: {PreviewObjectId}, PreviewHue: {PreviewHue}, SelectedPreviewObjectType: {SelectedPreviewObjectType}");
 
             int objectId = 0;
             int hue = 0;
 
             if (string.IsNullOrEmpty(PreviewObjectId))
             {
-               // Logger.Log("[ColorSelectionViewModel] PreviewObjectId is empty. Setting PreviewImage to null.");
                 PreviewImage = null;
                 return;
             }
@@ -170,7 +168,6 @@ namespace Axis2.WPF.ViewModels
                 {
                     if (!int.TryParse(PreviewObjectId.Substring(2), System.Globalization.NumberStyles.HexNumber, null, out objectId))
                     {
-                        //Logger.Log($"[ColorSelectionViewModel] Failed to parse hex NPC PreviewObjectId: {PreviewObjectId}. Setting PreviewImage to null.");
                         PreviewImage = null;
                         return;
                     }
@@ -179,13 +176,11 @@ namespace Axis2.WPF.ViewModels
                 {
                     if (!int.TryParse(PreviewObjectId, out objectId))
                     {
-                        //Logger.Log($"[ColorSelectionViewModel] Failed to parse decimal NPC PreviewObjectId: {PreviewObjectId}. Setting PreviewImage to null.");
                         PreviewImage = null;
                         return;
                     }
                 }
             }
-            //Logger.Log($"[ColorSelectionViewModel] Parsed objectId: {objectId}");
 
             // Parse Hue
             if (!string.IsNullOrEmpty(PreviewHue) && PreviewHue.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
@@ -193,39 +188,31 @@ namespace Axis2.WPF.ViewModels
                 if (!int.TryParse(PreviewHue.Substring(2), System.Globalization.NumberStyles.HexNumber, null, out hue))
                 {
                     hue = 0; // Default to no hue if parsing fails
-                    //Logger.Log($"[ColorSelectionViewModel] Failed to parse hex PreviewHue: {PreviewHue}. Defaulting hue to 0.");
                 }
             }
             else if (!int.TryParse(PreviewHue, out hue))
             {
                 hue = 0; // Default to no hue if parsing fails
-                //Logger.Log($"[ColorSelectionViewModel] Failed to parse decimal PreviewHue: {PreviewHue}. Defaulting hue to 0.");
             }
-            //Logger.Log($"[ColorSelectionViewModel] Parsed hue: {hue}\n"); // Added newline for better log readability
 
             if (SelectedPreviewObjectType == "Items")
             {
-                //Logger.Log($"[ColorSelectionViewModel] Calling GetItemArt for objectId: {objectId}, hue: {hue}");
                 PreviewImage = _uoArtService.GetItemArt(objectId, hue);
             }
             else if (SelectedPreviewObjectType == "NPCs")
             {
-                //Logger.Log($"[ColorSelectionViewModel] Calling GetNpcArt for objectId: {objectId}, hue: {hue}");
                 PreviewImage = _uoArtService.GetNpcArt(objectId, hue);
             }
             else
             {
-                //Logger.Log("[ColorSelectionViewModel] Unknown SelectedPreviewObjectType. Setting PreviewImage to null.");
                 PreviewImage = null;
             }
 
             if (PreviewImage == null)
             {
-               // Logger.Log("[ColorSelectionViewModel] PreviewImage is null after UoArtService call.");
             }
             else
             {
-               // Logger.Log("[ColorSelectionViewModel] PreviewImage successfully set.");
             }
         }
 

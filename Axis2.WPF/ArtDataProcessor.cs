@@ -115,58 +115,58 @@ namespace Axis2.WPF
 
                             byte[] npcPixels = null; // Initialisation pour satisfaire le compilateur
 
-                        int currentNpcY = 0;
-                        ushort previousLine = 0xFF; // Changé en ushort
+                            int currentNpcY = 0;
+                            ushort previousLine = 0xFF; // Changé en ushort
 
-                        while (stream.Position < stream.Length)
-                        {
-                            short header = reader.ReadInt16();
-                            short offset = reader.ReadInt16();
-
-                            if (header == 0x7FFF || offset == 0x7FFF)
-                                break;
-
-                            ushort runLength = (ushort)(header & 0x0FFF);
-                            ushort lineNum = (ushort)((header >> 12) & 0x000f);
-                            offset = (short)((offset & 0x8000) | (offset >> 6));
-
-                            if (runLength == 0 || runLength > 2048)
-                                break;
-
-                            int currentNpcX = -imageCenterX + offset;
-
-                            if (previousLine != 0xFF && lineNum != previousLine)
-                                currentNpcY++;
-
-                            previousLine = lineNum; // Correction ici
-
-                            if (currentNpcY < 0 || currentNpcY >= height)
-                                break;
-
-                            // Assurez-vous que npcPixels est initialisé avant d'être utilisé
-                            if (npcPixels == null) // Cette vérification est une sécurité, mais l'initialisation plus haut devrait suffire
+                            while (stream.Position < stream.Length)
                             {
-                                npcPixels = new byte[width * height * 4];
-                            }
+                                short header = reader.ReadInt16();
+                                short offset = reader.ReadInt16();
 
-                            for (int j = 0; j < runLength; j++)
-                            {
-                                byte paletteIndex = reader.ReadByte();
-                                ushort color16 = palette[paletteIndex];
-                                uint color32 = ColorHelper.Color16To32(color16);
+                                if (header == 0x7FFF || offset == 0x7FFF)
+                                    break;
 
-                                int pixelIndex = (currentNpcY * width + currentNpcX) * 4;
-                                if (pixelIndex + 3 < npcPixels.Length)
+                                ushort runLength = (ushort)(header & 0x0FFF);
+                                ushort lineNum = (ushort)((header >> 12) & 0x000f);
+                                offset = (short)((offset & 0x8000) | (offset >> 6));
+
+                                if (runLength == 0 || runLength > 2048)
+                                    break;
+
+                                int currentNpcX = -imageCenterX + offset;
+
+                                if (previousLine != 0xFF && lineNum != previousLine)
+                                    currentNpcY++;
+
+                                previousLine = lineNum; // Correction ici
+
+                                if (currentNpcY < 0 || currentNpcY >= height)
+                                    break;
+
+                                // Assurez-vous que npcPixels est initialisé avant d'être utilisé
+                                if (npcPixels == null) // Cette vérification est une sécurité, mais l'initialisation plus haut devrait suffire
                                 {
-                                    npcPixels[pixelIndex + 0] = (byte)(color32 & 0xFF);
-                                    npcPixels[pixelIndex + 1] = (byte)((color32 >> 8) & 0xFF);
-                                    npcPixels[pixelIndex + 2] = (byte)((color32 >> 16) & 0xFF);
-                                    npcPixels[pixelIndex + 3] = (color16 == 0) ? (byte)0 : (byte)0xFF;
+                                    npcPixels = new byte[width * height * 4];
                                 }
-                                currentNpcX++;
+
+                                for (int j = 0; j < runLength; j++)
+                                {
+                                    byte paletteIndex = reader.ReadByte();
+                                    ushort color16 = palette[paletteIndex];
+                                    uint color32 = ColorHelper.Color16To32(color16);
+
+                                    int pixelIndex = (currentNpcY * width + currentNpcX) * 4;
+                                    if (pixelIndex + 3 < npcPixels.Length)
+                                    {
+                                        npcPixels[pixelIndex + 0] = (byte)(color32 & 0xFF);
+                                        npcPixels[pixelIndex + 1] = (byte)((color32 >> 8) & 0xFF);
+                                        npcPixels[pixelIndex + 2] = (byte)((color32 >> 16) & 0xFF);
+                                        npcPixels[pixelIndex + 3] = (color16 == 0) ? (byte)0 : (byte)0xFF;
+                                    }
+                                    currentNpcX++;
+                                }
                             }
-                        }
-                        return npcPixels;
+                            return npcPixels;
 
                         default:
                             Console.WriteLine($"ArtType {artType} non implémenté pour le traitement des pixels.");

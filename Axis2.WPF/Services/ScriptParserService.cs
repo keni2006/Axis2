@@ -10,7 +10,7 @@ namespace Axis2.WPF.Services
 {
     public class ScriptParserService
     {
-                public List<RegionGroup> ParseMapScript(IEnumerable<string>? scriptPaths)
+        public List<RegionGroup> ParseMapScript(IEnumerable<string>? scriptPaths)
         {
             if (scriptPaths == null)
             {
@@ -201,7 +201,7 @@ namespace Axis2.WPF.Services
                                 case "ID":
                                     ParseAndAddNpc(currentSpawnGroup, value);
                                     break;
-                                // Add other properties if needed
+                                    // Add other properties if needed
                             }
                         }
                         else if (currentSpawnGroup != null && !string.IsNullOrEmpty(trimmedLine) && !trimmedLine.StartsWith("//"))
@@ -216,7 +216,7 @@ namespace Axis2.WPF.Services
             }
             catch (Exception ex)
             {
-                
+
                 return new List<SpawnGroup>(); // Return empty list on critical error
             }
 
@@ -241,7 +241,7 @@ namespace Axis2.WPF.Services
                         amount = parsedAmount;
                     }
                 }
-                
+
                 spawnGroup.SpawnEntries.Add(new SpawnEntry { DefName = defName, Amount = amount });
             }
             else

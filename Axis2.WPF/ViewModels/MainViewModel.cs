@@ -21,14 +21,96 @@ namespace Axis2.WPF.ViewModels
         private readonly TravelTabViewModel _travelTabViewModel;
         private readonly MulFileManager _mulFileManager;
         private readonly MobTypesService _mobTypesService;
-        private readonly IUoArtService _uoArtService; // New field
-        private readonly LightDataService _lightDataService; // New field
+        private readonly IUoArtService _uoArtService;
+        private readonly LightDataService _lightDataService;
 
         private string _statusMessage = string.Empty;
         public string StatusMessage
         {
             get => _statusMessage;
             set => SetProperty(ref _statusMessage, value);
+        }
+
+        // ---- server connection indicator (shown in the status bar) ----
+        private string _serverStatusText = "No server";
+        public string ServerStatusText
+        {
+            get => _serverStatusText;
+            set => SetProperty(ref _serverStatusText, value);
+        }
+
+        private System.Windows.Media.Brush _serverStatusBrush =
+            new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x9A, 0xA3, 0xB2));
+        public System.Windows.Media.Brush ServerStatusBrush
+        {
+            get => _serverStatusBrush;
+            set => SetProperty(ref _serverStatusBrush, value);
+        }
+
+        private string? _serverUrl;
+        private string _serverUser = string.Empty;
+        private string _serverPass = string.Empty;
+        private System.Windows.Threading.DispatcherTimer? _pingTimer;
+
+        private static readonly System.Windows.Media.Brush OnlineBrush =
+            new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x22, 0xC5, 0x5E));
+        private static readonly System.Windows.Media.Brush OfflineBrush =
+            new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xEF, 0x44, 0x44));
+        private static readonly System.Windows.Media.Brush IdleBrush =
+            new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x9A, 0xA3, 0xB2));
+
+        private void UpdateServerIndicator(Profile? profile)
+        {
+            if (profile != null && profile.IsWebProfile && !string.IsNullOrWhiteSpace(profile.URL))
+            {
+                _serverUrl = profile.URL.TrimEnd('/');
+                _serverUser = profile.Username ?? string.Empty;
+                _serverPass = profile.Password ?? string.Empty;
+                PingServerNow();
+                _pingTimer ??= CreatePingTimer();
+                _pingTimer.Start();
+            }
+            else
+            {
+                _serverUrl = null;
+                _pingTimer?.Stop();
+                ServerStatusText = "Local scripts";
+                ServerStatusBrush = IdleBrush;
+            }
+        }
+
+        private System.Windows.Threading.DispatcherTimer CreatePingTimer()
+        {
+            var timer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = System.TimeSpan.FromSeconds(10)
+            };
+            timer.Tick += (_, _) => PingServerNow();
+            return timer;
+        }
+
+        private async Task PingServerNow()
+        {
+            var url = _serverUrl;
+            if (string.IsNullOrEmpty(url))
+                return;
+            try
+            {
+                var (items, npcs) = await WebDataService.StatsAsync(url, _serverUser, _serverPass);
+                var who = string.IsNullOrEmpty(_serverUser) ? "" : $" · {_serverUser}";
+                ServerStatusText = $"Connected{who} · {url} · {items:N0} items / {npcs:N0} NPCs";
+                ServerStatusBrush = OnlineBrush;
+            }
+            catch (WebAuthException ex)
+            {
+                ServerStatusText = $"{ex.Message} · {url}";
+                ServerStatusBrush = OfflineBrush;
+            }
+            catch
+            {
+                ServerStatusText = $"Offline · {url}";
+                ServerStatusBrush = OfflineBrush;
+            }
         }
 
         public GeneralTabViewModel GeneralTabViewModel { get; }
@@ -62,7 +144,7 @@ namespace Axis2.WPF.ViewModels
             LogTabViewModel logTabViewModel, MiscTabViewModel miscTabViewModel,
             PlayerTweakTabViewModel playerTweakTabViewModel, ReminderTabViewModel reminderTabViewModel,
             SpawnTabViewModel spawnTabViewModel,
-            bool defaultProfileWasLoaded) // Add this parameter
+            bool defaultProfileWasLoaded)
         {
             _fileManager = fileManager;
             _animationManager = animationManager;
@@ -80,9 +162,10 @@ namespace Axis2.WPF.ViewModels
             _allSettings = _settingsService.LoadSettings();
 
             GeneralTabViewModel = generalTabViewModel;
-            ItemTabViewModel = new ItemTabViewModel(
-                mulFileManager, scriptParser, eventAggregator, uoClient,
-                settingsTabViewModel.SettingsItemTabViewModel, _lightDataService, (UoArtService)uoArtService, _settingsService);
+            // Use the ItemTabViewModel created in App startup instead of constructing a second one —
+            // a duplicate would subscribe to ProfileLoadedEvent too and parse/categorize everything
+            // twice (double the load time and memory).
+            ItemTabViewModel = itemTabViewModel;
             ItemTabViewModel.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(ItemTabViewModel.SelectedItem))
@@ -171,6 +254,7 @@ namespace Axis2.WPF.ViewModels
         {
             System.Console.WriteLine($"DEBUG: MainViewModel - ProfileLoadedEvent received for profile: {message.LoadedProfile.Name}");
             ReloadServices();
+            UpdateServerIndicator(message.LoadedProfile);
         }
 
         private void LoadDefaultProfile(ObservableCollection<Profile> profiles)

@@ -35,7 +35,7 @@ namespace Axis2.WPF.Views
         private System.Windows.Point ParseCoordinates(string coordinates)
         {
             if (string.IsNullOrEmpty(coordinates)) return new System.Windows.Point(0, 0);
-            
+
             var parts = coordinates.Split(',');
             if (parts.Length < 2) return new System.Windows.Point(0, 0);
 
@@ -113,7 +113,7 @@ namespace Axis2.WPF.Views
                 {
                     _isDrawing = true;
                     _drawingStartPoint = clickPointOnCanvas; // For visual rectangle
-                    
+
                     // Capture the exact map coordinates from the ViewModel's text property
                     _capturedStartMapPoint = ParseCoordinates(viewModel.MouseMapCoordinatesText);
 

@@ -4,7 +4,7 @@ namespace Axis2.WPF.Models
 {
     public class MusicTrack : BindableBase
     {
-        private int _id; // New property
+        private int _id;
         private string _name = string.Empty;
         private string _filePath = string.Empty;
 

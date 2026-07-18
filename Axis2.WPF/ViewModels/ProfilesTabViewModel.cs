@@ -124,7 +124,7 @@ namespace Axis2.WPF.ViewModels
             BrowseDirectoryCommand = new RelayCommand(BrowseDirectory);
             SaveScriptsCommand = new RelayCommand(() => SaveScripts(true));
 
-            _eventAggregator.Subscribe(this); // Add this line
+            _eventAggregator.Subscribe(this);
         }
 
         // Method to set MainViewModel after it's fully constructed
@@ -352,18 +352,19 @@ namespace Axis2.WPF.ViewModels
                 SelectedProfile = profileToSelect;
                 _mainViewModel.StatusMessage = $"Profile '{profileToSelect.Name}' loaded.";
             }
+
         }
     }
 
 
-    }
+}
 
-    public class Wpf32Window : System.Windows.Forms.IWin32Window
+public class Wpf32Window : System.Windows.Forms.IWin32Window
+{
+    public IntPtr Handle { get; private set; }
+
+    public Wpf32Window(System.Windows.Window wpfWindow)
     {
-        public IntPtr Handle { get; private set; }
-
-        public Wpf32Window(System.Windows.Window wpfWindow)
-        {
-            Handle = new WindowInteropHelper(wpfWindow).Handle;
-        }
+        Handle = new WindowInteropHelper(wpfWindow).Handle;
     }
+}

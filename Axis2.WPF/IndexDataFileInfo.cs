@@ -31,7 +31,7 @@ namespace Axis2.WPF
             }
             if (UopHeader.DecompressedSize == 0)
             {
-               // Logger.Log($"IndexDataFileInfo.GetData: UopHeader.DecompressedSize is 0 for hash {UopHeader.Hash:X16}.");
+                // Logger.Log($"IndexDataFileInfo.GetData: UopHeader.DecompressedSize is 0 for hash {UopHeader.Hash:X16}.");
                 return null;
             }
             try
@@ -40,7 +40,7 @@ namespace Axis2.WPF
             }
             catch (Exception) // Removed unused 'ex' variable
             {
-               // Logger.Log($"IndexDataFileInfo.GetData: Exception during ReadData for hash {UopHeader.Hash:X16}: {ex.Message}");
+                // Logger.Log($"IndexDataFileInfo.GetData: Exception during ReadData for hash {UopHeader.Hash:X16}: {ex.Message}");
                 return null;
             }
         }

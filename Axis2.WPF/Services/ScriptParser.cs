@@ -13,7 +13,21 @@ namespace Axis2.WPF.Services
     public class ScriptParser
     {
         private readonly object _mapLock = new object();
+
+        // Serializes the (background) parse+categorize work across tabs so ScriptParser's shared
+        // state (DefNameToObjectMap, parse cache) is never touched from two threads at once. Tabs
+        // wrap their loading in Task.Run + lock(LoadGate) to keep the UI thread free while loading.
+        public readonly object LoadGate = new object();
+
         public Dictionary<string, SObject> DefNameToObjectMap { get; private set; }
+
+        // Item/Spawn/Travel tabs each parse the SAME selected scripts on every profile load, which
+        // meant reading + string-splitting all ~66 files three times — the main source of the
+        // transient-string memory storm. Cache the parsed result per (path, last-write-time) so the
+        // file is read and parsed once; the tabs consume disjoint SObjectType subsets, so sharing the
+        // list is safe. Invalidated automatically when a script is edited (mtime changes).
+        private readonly Dictionary<string, (System.DateTime Mtime, List<SObject> Result)> _parseCache
+            = new(StringComparer.OrdinalIgnoreCase);
 
         public List<string> ItemTypes { get; private set; }
         public List<string> ItemProps { get; private set; }
@@ -37,18 +51,47 @@ namespace Axis2.WPF.Services
                 return items;
             }
 
+            // Sphere account / world-save files (e.g. anything under an "accounts" folder, or
+            // sphereaccu*/sphereacct*/sphereb##a backups) are NOT builder definitions. Parsing them
+            // creates tens of thousands of throwaway objects that get retained in DefNameToObjectMap
+            // and balloon memory to gigabytes. Skip them entirely.
+            if (IsNonDefinitionFile(filePath))
+            {
+                Logger.Log($"ScriptParser: skipping non-definition (account/save) file: {Path.GetFileName(filePath)}");
+                return items;
+            }
+
+            // Return the cached parse if the file hasn't changed since — avoids re-reading and
+            // re-parsing the same file for every tab.
+            var mtime = File.GetLastWriteTimeUtc(filePath);
+            lock (_mapLock)
+            {
+                if (_parseCache.TryGetValue(filePath, out var cached) && cached.Mtime == mtime)
+                    return cached.Result;
+            }
+
             var lines = File.ReadAllLines(filePath);
             AreaDefinition currentArea = null;
+
+            // Legacy Sphere 0.51a bare-hex blocks ([0001]) carry no keyword, so item vs. character
+            // is inferred from the file name: spherechar*.scp holds CHARDEFs, everything else ITEMDEFs.
+            string fileName = Path.GetFileName(filePath).ToLowerInvariant();
+            SObjectType legacyType = fileName.Contains("char") ? SObjectType.Npc : SObjectType.Item;
 
             for (int i = 0; i < lines.Length; i++)
             {
                 var line = lines[i].Trim();
                 if (line.StartsWith("[") && line.EndsWith("]"))
                 {
-                    var match = Regex.Match(line, @"\[(ITEMDEF|MULTIDEF|TEMPLATE|CHARDEF|SPAWN|AREADEF|ROOMDEF)\s+([^\]]+)\]", RegexOptions.IgnoreCase);
-                    if (match.Success)
+                    // Sphere 0.51a ("The Abyss") stores regions as [AREA name] / [ROOM name]; newer
+                    // scripts use [AREADEF] / [ROOMDEF]. Match both (longer keywords first).
+                    var match = Regex.Match(line, @"\[(ITEMDEF|MULTIDEF|TEMPLATE|CHARDEF|SPAWN|AREADEF|ROOMDEF|AREA|ROOM)\s+([^\]]+)\]", RegexOptions.IgnoreCase);
+                    // Sphere 0.51a (legacy "The Abyss") blocks use a bare hex id as the header,
+                    // e.g. [0000] or [04FE], with no keyword. Treat those per the file's legacyType.
+                    var legacyMatch = match.Success ? null : Regex.Match(line, @"^\[\s*(?:0x)?([0-9A-Fa-f]{1,5})\s*\]$", RegexOptions.IgnoreCase);
+                    if (match.Success || (legacyMatch != null && legacyMatch.Success))
                     {
-                        var objectType = GetObjectType(match.Groups[1].Value);
+                        var objectType = match.Success ? GetObjectType(match.Groups[1].Value) : legacyType;
 
                         // If we encounter a new Area or any other main section, reset the current area context.
                         if (objectType != SObjectType.Room)
@@ -62,7 +105,7 @@ namespace Axis2.WPF.Services
                             Type = objectType
                         };
 
-                        string value = match.Groups[2].Value.Trim();
+                        string value = (match.Success ? match.Groups[2].Value : legacyMatch.Groups[1].Value).Trim();
                         item.Id = value; // DEFNAME from header
                         item.Value = value;
                         item.DisplayId = value; // Default DisplayId is the DEFNAME
@@ -112,7 +155,19 @@ namespace Axis2.WPF.Services
                 }
             }
 
-            // Process DUPELIST and DUPEITEM after all main items are parsed
+            // Process DUPELIST and DUPEITEM after all main items are parsed.
+            // Build a hex-value index once so DUPEITEM resolution is O(1) instead of scanning
+            // the whole map per reference (the legacy Sphere 0.51a files are dupe-heavy).
+            var hexIndex = new Dictionary<uint, SObject>();
+            lock (_mapLock)
+            {
+                foreach (var kvp in DefNameToObjectMap)
+                {
+                    if (TryParseHex(kvp.Key, out uint hv) && !hexIndex.ContainsKey(hv))
+                        hexIndex[hv] = kvp.Value;
+                }
+            }
+
             var additionalItems = new List<SObject>();
             foreach (var obj in items.ToList()) // Iterate over a copy to allow modification of original list
             {
@@ -132,7 +187,14 @@ namespace Axis2.WPF.Services
                 }
                 else if (!string.IsNullOrEmpty(obj.DupeItem))
                 {
-                    if (DefNameToObjectMap.TryGetValue(obj.DupeItem, out var originalItem))
+                    // Direct string lookup first; fall back to hex-value match so Sphere 0.51a
+                    // references like DUPEITEM=002 resolve to the [0002] block despite differing width.
+                    if (!DefNameToObjectMap.TryGetValue(obj.DupeItem, out var originalItem))
+                    {
+                        if (TryParseHex(obj.DupeItem, out uint dupeHex))
+                            hexIndex.TryGetValue(dupeHex, out originalItem);
+                    }
+                    if (originalItem != null)
                     {
                         var dupeObject = originalItem.Clone() as SObject;
                         if (dupeObject != null)
@@ -145,6 +207,11 @@ namespace Axis2.WPF.Services
                 }
             }
             items.AddRange(additionalItems);
+
+            lock (_mapLock)
+            {
+                _parseCache[filePath] = (mtime, items);
+            }
             return items;
         }
 
@@ -361,6 +428,47 @@ namespace Axis2.WPF.Services
             }
         }
 
+        // Sphere SAVE files (accounts, world, data, multis and the sphereb## backup family) are NOT
+        // builder definitions — they're dumps of live server state, often huge (each can take many
+        // seconds to parse and produces zero item/char defs). Skipping them is what keeps loading
+        // fast and memory low. Real definition files (sphereitem*, spherechar*, spheremap*,
+        // spherespell*, spheredef*, …) are never matched here.
+        private static bool IsNonDefinitionFile(string filePath)
+        {
+            var dir = Path.GetDirectoryName(filePath) ?? string.Empty;
+            foreach (var seg in dir.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+            {
+                if (string.Equals(seg, "accounts", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(seg, "save", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(seg, "saves", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            var name = Path.GetFileNameWithoutExtension(filePath).ToLowerInvariant();
+            if (name.StartsWith("sphereworld") || name.StartsWith("spheredata") ||
+                name.StartsWith("spheremultis") || name.StartsWith("sphereaccu") ||
+                name.StartsWith("sphereacct") || name.StartsWith("spheregmpage"))
+                return true;
+
+            // "sphereb" followed by a digit = a save backup (sphereb01a = accounts, sphereb01w = world…).
+            if (name.StartsWith("sphereb") && name.Length > 7 && char.IsDigit(name[7]))
+                return true;
+
+            return false;
+        }
+
+        // Parses a Sphere 0.51a bare-hex tile reference (variable width, optional 0x) to its numeric value.
+        private static bool TryParseHex(string reference, out uint value)
+        {
+            value = 0;
+            if (string.IsNullOrWhiteSpace(reference))
+                return false;
+            string cleaned = reference.Trim();
+            if (cleaned.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                cleaned = cleaned.Substring(2);
+            return uint.TryParse(cleaned, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out value);
+        }
+
         private SObjectType GetObjectType(string typeStr)
         {
             return typeStr.ToUpper() switch
@@ -373,6 +481,8 @@ namespace Axis2.WPF.Services
                 "SPAWN" => SObjectType.SpawnGroup,
                 "AREADEF" => SObjectType.Area,
                 "ROOMDEF" => SObjectType.Room,
+                "AREA" => SObjectType.Area,
+                "ROOM" => SObjectType.Room,
                 _ => SObjectType.None,
             };
         }
@@ -414,10 +524,14 @@ namespace Axis2.WPF.Services
 
             while (currentDefname != null && visited.Add(currentDefname))
             {
-                if (!DefNameToObjectMap.TryGetValue(currentDefname, out var obj))
+                SObject obj;
+                lock (_mapLock)
                 {
-                    // This link in the chain does not exist in our map
-                    return null;
+                    if (!DefNameToObjectMap.TryGetValue(currentDefname, out obj))
+                    {
+                        // This link in the chain does not exist in our map
+                        return null;
+                    }
                 }
 
                 // The 'Id' property holds the value from the [SECTION Id] header.

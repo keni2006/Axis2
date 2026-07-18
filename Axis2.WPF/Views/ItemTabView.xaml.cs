@@ -28,6 +28,44 @@ namespace Axis2.WPF.Views
             }
         }
 
+        // Double-click a result row => run Create (place the item in the UO client).
+        private void DisplayedItems_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            TryCreateSelected();
+        }
+
+        // Enter on the list => Create. Ctrl+F anywhere on the tab => focus the search box.
+        private void Root_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.F &&
+                (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) != 0)
+            {
+                SearchBox?.Focus();
+                SearchBox?.SelectAll();
+                e.Handled = true;
+            }
+        }
+
+        private void DisplayedItems_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                TryCreateSelected();
+                e.Handled = true;
+            }
+        }
+
+        private void TryCreateSelected()
+        {
+            if (DataContext is ItemTabViewModel viewModel &&
+                viewModel.SelectedItem != null &&
+                viewModel.CreateCommand != null &&
+                viewModel.CreateCommand.CanExecute(null))
+            {
+                viewModel.CreateCommand.Execute(null);
+            }
+        }
+
         private void FindButton_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is ItemTabViewModel viewModel)
@@ -46,7 +84,7 @@ namespace Axis2.WPF.Views
                 viewModel.FilterItems(searchCriteria);
             }
         }
-    private System.Windows.Point _startPoint;
+        private System.Windows.Point _startPoint;
 
         private void DisplayedItems_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {

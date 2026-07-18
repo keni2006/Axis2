@@ -39,7 +39,7 @@ namespace Axis2.WPF
                     uint formatID = reader.ReadUInt32();
                     if (formatID != 0x0050594D) // "MYP\0" inversé
                     {
-                       Console.WriteLine($"Avertissement: Le fichier UOP '{_filePath}' a un formatID inattendu: {formatID:X8}");
+                        Console.WriteLine($"Avertissement: Le fichier UOP '{_filePath}' a un formatID inattendu: {formatID:X8}");
                         return false;
                     }
 

@@ -13,7 +13,7 @@ namespace Axis2.WPF.Services
 
             // Regex to find [SPELL ID] blocks
             // This regex captures the ID and the content of the spell block until the next [SPELL] or end of string
-                        Regex spellBlockRegex = new Regex(@"(?m)^\s*\[SPELL\s*(\d+)\]\s*$(.*?)(?=^\s*\[SPELL\s*\d+\]|\Z)", RegexOptions.Singleline);
+            Regex spellBlockRegex = new Regex(@"(?m)^\s*\[SPELL\s*(\d+)\]\s*$(.*?)(?=^\s*\[SPELL\s*\d+\]|\Z)", RegexOptions.Singleline);
 
             foreach (Match blockMatch in spellBlockRegex.Matches(scriptContent))
             {

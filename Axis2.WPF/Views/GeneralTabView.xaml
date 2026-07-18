@@ -1,114 +1,122 @@
 <UserControl x:Class="Axis2.WPF.Views.GeneralTabView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Axis2.WPF.Views"
-             mc:Ignorable="d" d:DesignWidth="800" Height="551">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="166.036"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="0*"/>
-        </Grid.RowDefinitions>
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="551">
+    <UserControl.Resources>
+        <!-- Small vertical spacing between the command buttons in each group -->
+        <Style x:Key="CmdButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+    </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="4">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <GroupBox Header="Information" Grid.Row="0" Grid.Column="0" Margin="5,5,5,16">
-            <StackPanel>
-                <Button Content="Admin" Command="{Binding AdminCommand}"/>
-                <Button Content="Info" Command="{Binding InfoCommand}"/>
-                <Button Content="Edit" Command="{Binding EditCommand}"/>
-                <Button Content="Clients" Command="{Binding ClientsCommand}"/>
-                <Button Content="Server Info" Command="{Binding ServerInfoCommand}"/>
-                <Button Content="Version" Command="{Binding VersionCommand}"/>
-            </StackPanel>
-        </GroupBox>
+            <GroupBox Header="Information" Grid.Row="0" Grid.Column="0" VerticalAlignment="Top">
+                <StackPanel>
+                    <Button Content="Admin" Command="{Binding AdminCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Info" Command="{Binding InfoCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Edit" Command="{Binding EditCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Clients" Command="{Binding ClientsCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Server Info" Command="{Binding ServerInfoCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Version" Command="{Binding VersionCommand}" Style="{StaticResource CmdButton}"/>
+                </StackPanel>
+            </GroupBox>
 
-        <GroupBox Header="Misc" Grid.Row="2" Grid.Column="0" Margin="5,5,5,84">
-            <StackPanel Height="202">
-                <Button Content="Link" Command="{Binding LinkCommand}"/>
-                <Button Content="Flip" Command="{Binding FlipCommand}"/>
-                <Button Content="Shrink" Command="{Binding ShrinkCommand}"/>
-                <Button Content="Dupe" Command="{Binding DupeCommand}"/>
-                <Button Content="Remove" Command="{Binding RemoveCommand}"/>
-                <Button Content="Nuke" Command="{Binding NukeCommand}"/>
-            </StackPanel>
-        </GroupBox>
+            <GroupBox Header="Weather" Grid.Row="0" Grid.Column="1" VerticalAlignment="Top">
+                <StackPanel>
+                    <Button Content="Snow" Command="{Binding SnowCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Rain" Command="{Binding RainCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Dry" Command="{Binding DryCommand}" Style="{StaticResource CmdButton}"/>
+                    <Slider Minimum="0" Maximum="30" Value="{Binding LightLevel, Mode=TwoWay}" Margin="0,4"/>
+                    <Button Content="Set Light" Command="{Binding SetLightCommand}" Style="{StaticResource CmdButton}"/>
+                </StackPanel>
+            </GroupBox>
 
-        <GroupBox Header="Vendors" Grid.Row="0" Grid.Column="2" Margin="5,10,6,13">
-            <StackPanel>
-                <Button Content="Buy" Command="{Binding BuyCommand}"/>
-                <Button Content="Sell" Command="{Binding SellCommand}"/>
-                <Button Content="Inventory" Command="{Binding InventoryCommand}"/>
-                <Button Content="Purchases" Command="{Binding PurchasesCommand}"/>
-                <Button Content="Samples" Command="{Binding SamplesCommand}"/>
-                <Button Content="Restock" Command="{Binding RestockCommand}"/>
-            </StackPanel>
-        </GroupBox>
+            <GroupBox Header="Vendors" Grid.Row="0" Grid.Column="2" VerticalAlignment="Top">
+                <StackPanel>
+                    <Button Content="Buy" Command="{Binding BuyCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Sell" Command="{Binding SellCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Inventory" Command="{Binding InventoryCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Purchases" Command="{Binding PurchasesCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Samples" Command="{Binding SamplesCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Restock" Command="{Binding RestockCommand}" Style="{StaticResource CmdButton}"/>
+                </StackPanel>
+            </GroupBox>
 
-        <GroupBox Header="Weather" Grid.Row="0" Grid.Column="1" Margin="5,5,5,16">
-            <StackPanel>
-                <Button Content="Snow" Command="{Binding SnowCommand}"/>
-                <Button Content="Rain" Command="{Binding RainCommand}"/>
-                <Button Content="Dry" Command="{Binding DryCommand}"/>
-                <Slider Minimum="0" Maximum="30" Value="{Binding LightLevel, Mode=TwoWay}" />
-                <Button Content="Set Light" Command="{Binding SetLightCommand}"/>
-            </StackPanel>
-        </GroupBox>
+            <GroupBox Header="Discipline" Grid.Row="0" Grid.Column="3" VerticalAlignment="Top">
+                <StackPanel>
+                    <Button Content="Jail" Command="{Binding JailCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Forgive" Command="{Binding ForgiveCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Kill" Command="{Binding KillCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Disconnect" Command="{Binding DisconnectCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Resurrect" Command="{Binding ResurrectCommand}" Style="{StaticResource CmdButton}"/>
+                </StackPanel>
+            </GroupBox>
 
-        <GroupBox Header="Self" Grid.Row="2" Grid.Column="1" Margin="5,5,5,84">
-            <StackPanel>
-                <Button Content="Invulnerable" Command="{Binding InvulnerableCommand}"/>
-                <Button Content="Allmove" Command="{Binding AllmoveCommand}"/>
-                <Button Content="Invisible" Command="{Binding InvisibleCommand}"/>
-                <Button Content="Fix" Command="{Binding FixCommand}"/>
-                <Button Content="Tele" Command="{Binding TeleCommand}"/>
-                <Button Content="Hear All" Command="{Binding HearAllCommand}"/>
-                <Button Content="GM Toggle" Command="{Binding GmToggleCommand}"/>
-                <Button Content="Details" Command="{Binding DetailsCommand}"/>
-                <Button Content="Nightsight" Command="{Binding NightSightCommand}"/>
-                <Button Content="Debug" Command="{Binding DebugCommand}"/>
-            </StackPanel>
-        </GroupBox>
+            <GroupBox Header="Misc" Grid.Row="1" Grid.Column="0" VerticalAlignment="Top">
+                <StackPanel>
+                    <Button Content="Link" Command="{Binding LinkCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Flip" Command="{Binding FlipCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Shrink" Command="{Binding ShrinkCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Dupe" Command="{Binding DupeCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Remove" Command="{Binding RemoveCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Nuke" Command="{Binding NukeCommand}" Style="{StaticResource CmdButton}"/>
+                </StackPanel>
+            </GroupBox>
 
-        <GroupBox Header="Discipline" Grid.Row="0" Grid.Column="3" Margin="3,10,7,13">
-            <StackPanel>
-                <Button Content="Jail" Command="{Binding JailCommand}"/>
-                <Button Content="Forgive" Command="{Binding ForgiveCommand}"/>
-                <Button Content="Kill" Command="{Binding KillCommand}"/>
-                <Button Content="Disconnect" Command="{Binding DisconnectCommand}"/>
-                <Button Content="Resurrect" Command="{Binding ResurrectCommand}"/>
-            </StackPanel>
-        </GroupBox>
+            <GroupBox Header="Self" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top">
+                <StackPanel>
+                    <Button Content="Invulnerable" Command="{Binding InvulnerableCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Allmove" Command="{Binding AllmoveCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Invisible" Command="{Binding InvisibleCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Fix" Command="{Binding FixCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Tele" Command="{Binding TeleCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Hear All" Command="{Binding HearAllCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="GM Toggle" Command="{Binding GmToggleCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Details" Command="{Binding DetailsCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Nightsight" Command="{Binding NightSightCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Debug" Command="{Binding DebugCommand}" Style="{StaticResource CmdButton}"/>
+                </StackPanel>
+            </GroupBox>
 
-        <GroupBox Header="GM Page" Grid.Row="2" Grid.Column="2" Margin="5,5,5,84">
-            <StackPanel>
-                <Button Content="Page On" Command="{Binding PageOnCommand}"/>
-                <Button Content="Page List" Command="{Binding PageListCommand}"/>
-                <Button Content="Go Player" Command="{Binding PagePlayerCommand}"/>
-                <Button Content="Page Disconnect" Command="{Binding PageDisconnectCommand}"/>
-                <Button Content="Page Ban" Command="{Binding PageKickCommand}"/>
-                <Button Content="Page Off" Command="{Binding PageOffCommand}"/>
-                <Button Content="Page Queue" Command="{Binding PageQueueCommand}"/>
-                <Button Content="Go Origin" Command="{Binding PageOriginCommand}"/>
-                <Button Content="Page Jail" Command="{Binding PageJailCommand}"/>
-                <Button Content="Page Delete" Command="{Binding PageDeleteCommand}"/>
-            </StackPanel>
-        </GroupBox>
+            <GroupBox Header="GM Page" Grid.Row="1" Grid.Column="2" VerticalAlignment="Top">
+                <StackPanel>
+                    <Button Content="Page On" Command="{Binding PageOnCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Page List" Command="{Binding PageListCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Go Player" Command="{Binding PagePlayerCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Page Disconnect" Command="{Binding PageDisconnectCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Page Ban" Command="{Binding PageKickCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Page Off" Command="{Binding PageOffCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Page Queue" Command="{Binding PageQueueCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Go Origin" Command="{Binding PageOriginCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Page Jail" Command="{Binding PageJailCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Page Delete" Command="{Binding PageDeleteCommand}" Style="{StaticResource CmdButton}"/>
+                </StackPanel>
+            </GroupBox>
 
-        <StackPanel Grid.Row="2" Grid.Column="3" Margin="3,1,7,84">
-            <Button Content="Save" Command="{Binding WorldSaveCommand}"/>
-            <Button Content="Save Statics" Command="{Binding SaveStaticsCommand}"/>
-            <Button Content="Resync" Command="{Binding ResyncCommand}"/>
-            <Button Content="Restock All" Command="{Binding RestockAllCommand}"/>
-            <Button Content="Remote Console" Command="{Binding RemoteConsoleCommand}"/>
-        </StackPanel>
-    </Grid>
+            <GroupBox Header="World" Grid.Row="1" Grid.Column="3" VerticalAlignment="Top">
+                <StackPanel>
+                    <Button Content="Save" Command="{Binding WorldSaveCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Save Statics" Command="{Binding SaveStaticsCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Resync" Command="{Binding ResyncCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Restock All" Command="{Binding RestockAllCommand}" Style="{StaticResource CmdButton}"/>
+                    <Button Content="Remote Console" Command="{Binding RemoteConsoleCommand}" Style="{StaticResource CmdButton}"/>
+                </StackPanel>
+            </GroupBox>
+        </Grid>
+    </ScrollViewer>
 </UserControl>

@@ -100,7 +100,7 @@ namespace Axis2.WPF
                 {
                     stream.Seek((long)uopHeader.Offset, SeekOrigin.Begin);
                     byte[] buffer = new byte[uopHeader.DecompressedSize];
-                    stream.Read(buffer, 0, (int)uopHeader.DecompressedSize);
+                    stream.ReadExactly(buffer, 0, (int)uopHeader.DecompressedSize);
                     return buffer;
                 }
             }

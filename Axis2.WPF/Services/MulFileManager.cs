@@ -11,7 +11,7 @@ using System.Linq;
 using Axis2.WPF.Services;
 using Axis2.WPF.ViewModels.Settings;
 
-// Ajout des directives using pour les nouvelles classes
+
 // Elles sont maintenant dans le même namespace Axis2.WPF, donc pas besoin de 'using Axis2_WPF;' si elles sont au même niveau.
 // Si elles sont dans un sous-dossier, il faudrait un 'using Axis2.WPF.SubFolder;'
 
@@ -37,7 +37,7 @@ namespace Axis2.WPF.Services
 
         private FileManager _fileManager; // Add FileManager dependency
         private AnimationManager _animationManager; // Add AnimationManager dependency
-        
+
         public MulFileManager(FileManager fileManager, AnimationManager animationManager, BodyDefService bodyDefService)
         {
             _fileManager = fileManager;
@@ -86,7 +86,7 @@ namespace Axis2.WPF.Services
             {
                 finalItemId += 0x4000;
             }
-            
+
             var indexRecord = ReadIndexRecord(_artIdxPath, finalItemId);
             if (indexRecord == null || indexRecord.Lookup == 0xFFFFFFFF || indexRecord.Size <= 0)
             {
@@ -97,7 +97,7 @@ namespace Axis2.WPF.Services
         }
 
 
-                private ArtRecord? ReadItemData(string artPath, uint lookup, int size)
+        private ArtRecord? ReadItemData(string artPath, uint lookup, int size)
         {
             if (!File.Exists(artPath)) return null;
             try
@@ -108,7 +108,7 @@ namespace Axis2.WPF.Services
 
                     byte[] bData = new byte[size];
                     fs.Seek(lookup, SeekOrigin.Begin);
-                    fs.Read(bData, 0, size);
+                    fs.ReadExactly(bData, 0, size);
 
                     int dwOffset = 4;
                     ushort wArtWidth = BitConverter.ToUInt16(bData, dwOffset);
@@ -132,7 +132,7 @@ namespace Axis2.WPF.Services
                     {
                         dwOffset = lineStart[y] * 2 + dataStart;
                         int x = 0;
-                        
+
                         while (true)
                         {
                             ushort xOffset = BitConverter.ToUInt16(bData, dwOffset);
@@ -176,9 +176,10 @@ namespace Axis2.WPF.Services
             byte[] imageData = artRecord.ImageData;
             bool isBgra = imageData.Length == width * height * 4;
 
+            BitmapSource bmp;
             if (isBgra)
             {
-                return BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, imageData, width * 4);
+                bmp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, imageData, width * 4);
             }
             else
             {
@@ -206,10 +207,14 @@ namespace Axis2.WPF.Services
                         pixels[pixelBGRAIndex + 3] = 255;
                     }
                 }
-                return BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
+                bmp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
             }
+
+            // Freeze so the bitmap is immutable, cheaper, and safely shareable across threads/cache.
+            if (bmp.CanFreeze) bmp.Freeze();
+            return bmp;
         }
-        
+
         public BitmapSource? GetBodyAnimationFromUop(uint body, int direction, int action, int frame, int hue)
         {
             ushort animId = (ushort)body;
@@ -221,25 +226,21 @@ namespace Axis2.WPF.Services
                 animId = bodyDef.NewId;
 
             // Obtenir les données de la frame d'animation depuis AnimationManager
-           // Logger.Log($"GetBodyAnimationFromUop: Requesting animation data for animId: {animId}, groupIndex: {groupIndex}, direction: {direction}");
             IndexDataFileInfo? frameInfo = _animationManager.GetAnimationFrameData(animId, groupIndex, direction);
 
             if (frameInfo == null || frameInfo.UopHeader.DecompressedSize == 0)
             {
-                System.Windows.MessageBox.Show($"MulFileManager: Données d'animation UOP non trouvées pour ID: 0x{body:X}, Group: {groupIndex}, Direction: {direction}.", "Erreur UOP");
+                Logger.Log($"MulFileManager: UOP animation data not found for ID 0x{body:X}, group {groupIndex}, direction {direction}.");
                 return null;
             }
 
-           // Logger.Log($"MulFileManager: Calling GetData() on frameInfo. UopHeader.DecompressedSize: {frameInfo.UopHeader.DecompressedSize}");
             byte[]? decompressedData = frameInfo.GetData();
 
             if (decompressedData == null)
             {
-                System.Windows.MessageBox.Show($"MulFileManager: Échec de la lecture/décompression des données pour l'ID 0x{body:X}.", "Erreur UOP");
+                Logger.Log($"MulFileManager: failed to read/decompress data for ID 0x{body:X}.");
                 return null;
             }
-
-            System.Windows.MessageBox.Show($"MulFileManager: Taille des données décompressées: {decompressedData.Length}", "MulFileManager Debug");
 
             int width, height;
             // Utilisation de ArtDataProcessor pour traiter les pixels
@@ -247,18 +248,16 @@ namespace Axis2.WPF.Services
 
             if (processedPixels == null)
             {
-                System.Windows.MessageBox.Show($"MulFileManager: Échec du traitement des pixels pour l'ID 0x{body:X}.", "Erreur UOP");
+                Logger.Log($"MulFileManager: failed to process pixels for ID 0x{body:X}.");
                 return null;
             }
-
-            System.Windows.MessageBox.Show($"MulFileManager: Dimensions de l'image traitée: {width}x{height}", "MulFileManager Debug");
 
             // Utilisation de WpfImageHelper pour créer le BitmapSource
             BitmapSource? bitmapSource = WpfImageHelper.CreateBitmapSource(processedPixels, width, height, PixelFormats.Bgra32);
 
             if (bitmapSource == null)
             {
-                System.Windows.MessageBox.Show($"MulFileManager: Échec de la création du BitmapSource pour l'ID 0x{body:X}.", "Erreur UOP");
+                Logger.Log($"MulFileManager: failed to create BitmapSource for ID 0x{body:X}.");
             }
 
             return bitmapSource;
@@ -288,7 +287,6 @@ namespace Axis2.WPF.Services
                 short width = br.ReadInt16();
                 short height = br.ReadInt16();
 
-                //System.Windows.MessageBox.Show($"ReadAnimationDataFromBytes: Width={width}, Height={height}", "MulFileManager Debug");
 
                 if (width <= 0 || height <= 0) return null;
 
@@ -305,7 +303,7 @@ namespace Axis2.WPF.Services
 
                     ushort runLength = (ushort)(header & 0x0FFF);
                     ushort currentLineNum = (ushort)((header >> 12) & 0x000f);
-                    
+
                     ushort wTmp = (ushort)(offset & 0x8000);
                     offset = (short)(wTmp | (offset >> 6));
 
@@ -331,7 +329,6 @@ namespace Axis2.WPF.Services
 
                             if (y == 0 && currentX < 10) // Sample first 10 pixels of the first line
                             {
-                                //System.Windows.MessageBox.Show($"Pixel at ({currentX},{y}): R={r}, G={g}, B={b}", "MulFileManager Debug");
                             }
                         }
                     }
@@ -360,13 +357,13 @@ namespace Axis2.WPF.Services
                 // Sinon on garde l'ID original pour ce fichier mul
             }
             // On ne consulte body.def que si aucune entrée n'a été trouvée dans bodyconv.def
-            else 
+            else
             {
                 var bodyDef = _bodyDefService.GetBodyDef(originalId);
                 if (bodyDef != null)
                     animId = bodyDef.NewId;
             }
-            
+
             string animBaseDir = Path.GetDirectoryName(_animIdxPath) ?? string.Empty;
             string currentAnimIdxPath = Path.Combine(animBaseDir, $"anim{mulFileId}.idx");
             string currentAnimMulPath = Path.Combine(animBaseDir, $"anim{mulFileId}.mul");
