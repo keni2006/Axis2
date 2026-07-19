@@ -11,6 +11,22 @@
 
 ---
 
+## Screenshots
+
+**Item** — browse every item in your shard's scripts by category (with counts), live-search by name or
+hex ID, preview the tile art in its real hue, and place / move / spawn it in the client.
+*Просмотр всех предметов шарда по категориям, живой поиск, превью тайла в реальном цвете, установка/спавн.*
+
+![Item tab](docs/item-tab.png)
+
+**Travel** — the shard's world map rendered from the `.mul` files, with regions/rooms, saved locations,
+and recall / gate tools to jump anywhere.
+*Карта мира шарда из `.mul`, регионы/комнаты, сохранённые локации и recall/gate для перемещения.*
+
+![Travel tab](docs/travel-tab.png)
+
+---
+
 ## English
 
 **Axis2** loads your shard's items, NPCs, regions and spells and lets a GM work with them and send

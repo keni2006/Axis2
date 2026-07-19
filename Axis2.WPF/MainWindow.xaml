@@ -11,6 +11,66 @@
         MinHeight="650" MinWidth="1150" WindowStartupLocation="CenterScreen"
         ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica"
         Background="{DynamicResource WindowBackgroundBrush}">
+    <ui:FluentWindow.Resources>
+        <!-- Footer segmented-control button (Light / Dark). Active state highlights via the
+             IsDarkTheme binding below. -->
+        <Style x:Key="SegBase" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" CornerRadius="9" Background="{TemplateBinding Background}" Padding="10,1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SegLight" TargetType="Button" BasedOn="{StaticResource SegBase}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsDarkTheme}" Value="False">
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="SegDark" TargetType="Button" BasedOn="{StaticResource SegBase}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsDarkTheme}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Footer "Compact" pill — outlined when off, accent-filled when on. -->
+        <Style x:Key="CompactPill" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" CornerRadius="9" Padding="10,1" Background="Transparent"
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsCompactMode}" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ui:FluentWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -18,13 +78,23 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="Axis Sphere51">
-            <ui:TitleBar.Icon>
-                <ui:ImageIcon Source="Assets/icon.png"/>
-            </ui:TitleBar.Icon>
-        </ui:TitleBar>
+        <Grid Grid.Row="0">
+            <!-- WPF-UI title bar keeps native drag + min/max/close; title text cleared so the
+                 custom Fluent wordmark below shows through. -->
+            <ui:TitleBar x:Name="AppTitleBar" Title=""/>
+            <StackPanel x:Name="Branding" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left"
+                        Margin="12,0,0,0" IsHitTestVisible="False">
+                <Image Source="Assets/icon.png" Width="18" Height="18" VerticalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                <TextBlock Text="Axis" Margin="8,0,0,0" VerticalAlignment="Center"
+                           FontFamily="{DynamicResource DisplayFontFamily}" FontSize="13" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextBrush}"/>
+                <TextBlock Text="Sphere&#160;51a" Margin="6,0,0,0" VerticalAlignment="Center"
+                           FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+            </StackPanel>
+        </Grid>
 
-        <TabControl Grid.Row="1">
+        <TabControl x:Name="MainTabControl" Grid.Row="1">
             <TabItem Header="General">
                 <views:GeneralTabView DataContext="{Binding GeneralTabViewModel}"/>
             </TabItem>
@@ -38,7 +108,7 @@
                 <views:LauncherTabView DataContext="{Binding LauncherTabViewModel}"/>
             </TabItem>
             <TabItem Header="Item">
-                <views:ItemTabView DataContext="{Binding ItemTabViewModel}"/>
+                <views:ItemTabView x:Name="ItemView" DataContext="{Binding ItemTabViewModel}"/>
             </TabItem>
             <TabItem Header="Item Tweak">
                 <views:ItemTweakTabView DataContext="{Binding ItemTweakTabViewModel}"/>
@@ -72,35 +142,61 @@
             </TabItem>
         </TabControl>
 
-        <StatusBar Grid.Row="2">
-            <StatusBar.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <DockPanel HorizontalAlignment="Stretch"/>
-                </ItemsPanelTemplate>
-            </StatusBar.ItemsPanel>
-            <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}"/>
-            </StatusBarItem>
-            <Separator/>
-            <StatusBarItem>
-                <TextBlock Text="{Binding ItemTabViewModel.TotalItemCount, StringFormat='Items: {0:N0}'}"/>
-            </StatusBarItem>
-            <Separator/>
-            <StatusBarItem>
-                <TextBlock Text="{Binding SpawnTabViewModel.TotalNpcCount, StringFormat='NPCs: {0:N0}'}"/>
-            </StatusBarItem>
-            <Separator/>
-            <StatusBarItem>
-                <StackPanel Orientation="Horizontal" ToolTip="Data server connection">
-                    <TextBlock Text="●" Foreground="{Binding ServerStatusBrush}" FontSize="13"
-                               VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBlock Text="{Binding ServerStatusText}" VerticalAlignment="Center"/>
+        <!-- ===== Footer (design status bar): status · counts · server / compact · theme · source ===== -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" MinHeight="30">
+            <Grid Margin="12,3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left cluster -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#x203A;" Foreground="{DynamicResource AccentBrush}"
+                               FontFamily="{DynamicResource MonoFontFamily}" FontWeight="Bold" Margin="0,0,7,0"/>
+                    <TextBlock Text="{Binding StatusMessage}" FontFamily="{DynamicResource MonoFontFamily}" FontSize="10.5"
+                               VerticalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
+                    <Border Width="1" Height="12" Background="{DynamicResource BorderBrush}" Margin="12,0"/>
+                    <TextBlock Text="{Binding ItemTabViewModel.TotalItemCount, StringFormat='Items {0:N0}'}"
+                               FontFamily="{DynamicResource MonoFontFamily}" FontSize="10.5" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextBrush}"/>
+                    <Border Width="1" Height="12" Background="{DynamicResource BorderBrush}" Margin="12,0"/>
+                    <TextBlock Text="{Binding SpawnTabViewModel.TotalNpcCount, StringFormat='NPCs {0:N0}'}"
+                               FontFamily="{DynamicResource MonoFontFamily}" FontSize="10.5" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextBrush}"/>
+                    <Border Width="1" Height="12" Background="{DynamicResource BorderBrush}" Margin="12,0"/>
+                    <StackPanel Orientation="Horizontal" ToolTip="Data server connection">
+                        <Ellipse Width="8" Height="8" Fill="{Binding ServerStatusBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="{Binding ServerStatusText}" FontSize="10.5" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                    </StackPanel>
                 </StackPanel>
-            </StatusBarItem>
-            <StatusBarItem DockPanel.Dock="Right" HorizontalAlignment="Right">
-                <Button Content="🌙 Dark" Click="ThemeToggle_Click" Padding="8,2" Cursor="Hand"
-                        ToolTip="Toggle light / dark theme"/>
-            </StatusBarItem>
-        </StatusBar>
+
+                <!-- Right cluster: compact · theme segmented · source -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="&#x2922; Compact" Style="{StaticResource CompactPill}" Click="Compact_Click"
+                            ToolTip="Compact item-picker mode"/>
+                    <Border Margin="10,0,0,0" Background="{DynamicResource SurfaceBrush}" CornerRadius="10"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="2">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Light" Style="{StaticResource SegLight}" Click="Theme_Light"/>
+                            <Button Content="Dark" Style="{StaticResource SegDark}" Click="Theme_Dark"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Margin="10,0,0,0" Background="{DynamicResource SurfaceBrush}" CornerRadius="10"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="10,2"
+                            ToolTip="Active data source">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="AXISSERVER" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding ServerLocationLabel}" FontSize="10" FontWeight="SemiBold"
+                                       Margin="6,0,0,0" Foreground="{DynamicResource TextBrush}"/>
+                            <TextBlock Text="&#x25BE;" FontSize="9" Margin="6,0,0,0" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </ui:FluentWindow>

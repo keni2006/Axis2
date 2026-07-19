@@ -533,10 +533,13 @@ namespace Axis2.WPF.ViewModels
                 }
                 else
                 {
+                    // Sphere hues are hex, with or without a 0x prefix (e.g. COLOR=025 / 0x0494).
                     int hue = 0;
-                    if (!string.IsNullOrEmpty(SelectedItem.Color) && SelectedItem.Color.StartsWith("0x"))
+                    if (!string.IsNullOrEmpty(SelectedItem.Color))
                     {
-                        int.TryParse(SelectedItem.Color.Substring(2), System.Globalization.NumberStyles.HexNumber, null, out hue);
+                        var c = SelectedItem.Color.Trim();
+                        if (c.StartsWith("0x", System.StringComparison.OrdinalIgnoreCase)) c = c.Substring(2);
+                        int.TryParse(c, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out hue);
                     }
 
                     int frame = this.Frame;

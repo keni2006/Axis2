@@ -798,10 +798,16 @@ namespace Axis2.WPF.ViewModels
 
             if (itemId > 0)
             {
+                // Sphere item colours are hex hue values, written with or without a 0x prefix
+                // (e.g. COLOR=025, COLOR=0494, COLOR=38a); "ALL_COLORS"/random stay uncoloured.
                 int hue = 0;
-                if (!string.IsNullOrEmpty(item.Color) && item.Color.StartsWith("0x"))
+                if (!string.IsNullOrEmpty(item.Color))
                 {
-                    int.TryParse(item.Color.Substring(2), System.Globalization.NumberStyles.HexNumber, null, out hue);
+                    var c = item.Color.Trim();
+                    if (c.StartsWith("0x", System.StringComparison.OrdinalIgnoreCase))
+                        c = c.Substring(2);
+                    int.TryParse(c, System.Globalization.NumberStyles.HexNumber,
+                                 System.Globalization.CultureInfo.InvariantCulture, out hue);
                 }
 
                 ItemIDText = $"0x{itemId:X}";

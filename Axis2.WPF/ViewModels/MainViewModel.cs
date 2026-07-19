@@ -31,6 +31,46 @@ namespace Axis2.WPF.ViewModels
             set => SetProperty(ref _statusMessage, value);
         }
 
+        // ---- active theme (drives the footer Light/Dark segmented control) ----
+        private bool _isDarkTheme;
+        public bool IsDarkTheme
+        {
+            get => _isDarkTheme;
+            set => SetProperty(ref _isDarkTheme, value);
+        }
+
+        // ---- compact (dense item-picker) mode, toggled from the footer ----
+        private bool _isCompactMode;
+        public bool IsCompactMode
+        {
+            get => _isCompactMode;
+            set => SetProperty(ref _isCompactMode, value);
+        }
+
+        // ---- which tabs are available in compact mode (Settings → Compact Panel) ----
+        private bool _compactShowGeneral = true;
+        private bool _compactShowItem = true;
+        private bool _compactShowSpawn;
+        private bool _compactShowTravel = true;
+        private bool _compactShowMisc;
+        private bool _compactShowCommands;
+        private bool _compactShowAccount;
+        public bool CompactShowGeneral { get => _compactShowGeneral; set => SetProperty(ref _compactShowGeneral, value); }
+        public bool CompactShowItem { get => _compactShowItem; set => SetProperty(ref _compactShowItem, value); }
+        public bool CompactShowSpawn { get => _compactShowSpawn; set => SetProperty(ref _compactShowSpawn, value); }
+        public bool CompactShowTravel { get => _compactShowTravel; set => SetProperty(ref _compactShowTravel, value); }
+        public bool CompactShowMisc { get => _compactShowMisc; set => SetProperty(ref _compactShowMisc, value); }
+        public bool CompactShowCommands { get => _compactShowCommands; set => SetProperty(ref _compactShowCommands, value); }
+        public bool CompactShowAccount { get => _compactShowAccount; set => SetProperty(ref _compactShowAccount, value); }
+
+        // ---- short data-source label for the footer "AxisServer" dropdown ----
+        private string _serverLocationLabel = "Local";
+        public string ServerLocationLabel
+        {
+            get => _serverLocationLabel;
+            set => SetProperty(ref _serverLocationLabel, value);
+        }
+
         // ---- server connection indicator (shown in the status bar) ----
         private string _serverStatusText = "No server";
         public string ServerStatusText
@@ -66,6 +106,7 @@ namespace Axis2.WPF.ViewModels
                 _serverUrl = profile.URL.TrimEnd('/');
                 _serverUser = profile.Username ?? string.Empty;
                 _serverPass = profile.Password ?? string.Empty;
+                try { ServerLocationLabel = new System.Uri(_serverUrl).Host; } catch { ServerLocationLabel = "Server"; }
                 PingServerNow();
                 _pingTimer ??= CreatePingTimer();
                 _pingTimer.Start();
@@ -76,6 +117,7 @@ namespace Axis2.WPF.ViewModels
                 _pingTimer?.Stop();
                 ServerStatusText = "Local scripts";
                 ServerStatusBrush = IdleBrush;
+                ServerLocationLabel = "Local";
             }
         }
 

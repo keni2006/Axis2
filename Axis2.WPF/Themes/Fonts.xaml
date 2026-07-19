@@ -1,0 +1,11 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Font families for the Fluent skin (AxisWindow design).
+         Body + display resolve to the native Windows "Segoe UI Variable" family (Segoe UI as
+         fallback on Windows 10); data/IDs/counts use the embedded JetBrains Mono. -->
+    <FontFamily x:Key="BodyFontFamily">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="DisplayFontFamily">Segoe UI Variable Display, Segoe UI Semibold, Segoe UI</FontFamily>
+    <FontFamily x:Key="MonoFontFamily">pack://application:,,,/Assets/Fonts/#JetBrains Mono</FontFamily>
+
+</ResourceDictionary>

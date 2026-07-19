@@ -219,7 +219,10 @@ namespace Axis2.WPF.Services
         {
             ResolveObjectDisplayIds(items);
 
-            var categoryDict = new Dictionary<string, Category>();
+            // Group case-insensitively but keep the first-seen casing so category/subsection/
+            // description text is shown EXACTLY as written in the script (e.g. "No Draw Tile",
+            // "Bad Tiles") instead of being lower-cased.
+            var categoryDict = new Dictionary<string, Category>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var item in items)
             {
@@ -236,17 +239,13 @@ namespace Axis2.WPF.Services
                     item.Description = item.Id;
                 }
 
-                item.Category = Capitalize(item.Category);
-                item.SubSection = Capitalize(item.SubSection);
-                item.Description = Capitalize(item.Description);
-
                 if (!categoryDict.TryGetValue(item.Category, out var category))
                 {
                     category = new Category { Name = item.Category };
                     categoryDict[item.Category] = category;
                 }
 
-                var subCategory = category.SubSections.FirstOrDefault(s => s.Name == item.SubSection);
+                var subCategory = category.SubSections.FirstOrDefault(s => string.Equals(s.Name, item.SubSection, StringComparison.OrdinalIgnoreCase));
                 if (subCategory == null)
                 {
                     subCategory = new SubCategory { Name = item.SubSection };
@@ -485,13 +484,6 @@ namespace Axis2.WPF.Services
                 "ROOM" => SObjectType.Room,
                 _ => SObjectType.None,
             };
-        }
-
-        private string Capitalize(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return text;
-            return char.ToUpper(text[0]) + text.Substring(1).ToLower();
         }
 
         private void ResolveObjectDisplayIds(List<SObject> items)

@@ -12,11 +12,8 @@
                 <DropShadowEffect Color="#22000000" BlurRadius="24" ShadowDepth="0"/>
             </Border.Effect>
             <StackPanel HorizontalAlignment="Center">
-                <Border Width="76" Height="76" CornerRadius="18" HorizontalAlignment="Center"
-                        Background="{DynamicResource AccentBrush}">
-                    <TextBlock Text="A" FontSize="42" FontWeight="Bold" Foreground="White"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
+                <Image Source="/Assets/icon.png" Width="80" Height="80" HorizontalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality"/>
 
                 <TextBlock Text="Axis Sphere51" FontSize="30" FontWeight="Bold"
                            HorizontalAlignment="Center" Margin="0,18,0,2"
@@ -24,7 +21,7 @@
                 <TextBlock Text="Sphere 51a toolkit"
                            FontSize="13" HorizontalAlignment="Center"
                            Foreground="{DynamicResource TextMutedBrush}"/>
-                <TextBlock Text="Version 0.1"
+                <TextBlock Text="Version 0.2"
                            FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
                            Margin="0,6,0,0"
                            Foreground="{DynamicResource AccentDarkBrush}"/>
@@ -42,6 +39,13 @@
                     <TextBlock Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
                                HorizontalAlignment="Center" Margin="0,14,0,0"
                                Text="Original visual by Prapilk • Honoring PUNT"/>
+                    <TextBlock HorizontalAlignment="Center" Margin="0,16,0,0" FontSize="13">
+                        <Hyperlink NavigateUri="https://github.com/keni2006/Axis2"
+                                   RequestNavigate="Hyperlink_RequestNavigate"
+                                   Foreground="{DynamicResource AccentBrush}" TextDecorations="None">
+                            🔗 github.com/keni2006/Axis2
+                        </Hyperlink>
+                    </TextBlock>
                 </StackPanel>
             </StackPanel>
         </Border>

@@ -10,7 +10,8 @@
                 <!-- WPF-UI (Fluent) provides the modern window chrome / title bar. -->
                 <ui:ThemesDictionary Theme="Light" />
                 <ui:ControlsDictionary />
-                <!-- Our own palette + control theme layer on top and win for styled controls. -->
+                <!-- Our own fonts + palette + control theme layer on top and win for styled controls. -->
+                <ResourceDictionary Source="/Themes/Fonts.xaml"/>
                 <ResourceDictionary Source="/Themes/Palette.Light.xaml"/>
                 <ResourceDictionary Source="/Themes/ModernTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
