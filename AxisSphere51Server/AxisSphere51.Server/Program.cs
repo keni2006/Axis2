@@ -167,6 +167,19 @@ api.MapGet("/spells", (ScriptRepository repo, string? search) =>
     return Results.Ok(q.ToList());
 });
 
+api.MapGet("/skills", (ScriptRepository repo, string? search) =>
+{
+    IEnumerable<SkillDto> q = repo.Skills();
+    if (!string.IsNullOrWhiteSpace(search))
+    {
+        var s = search.Trim();
+        q = q.Where(sk =>
+            sk.Key.Contains(s, StringComparison.OrdinalIgnoreCase) ||
+            sk.Title.Contains(s, StringComparison.OrdinalIgnoreCase));
+    }
+    return Results.Ok(q.ToList());
+});
+
 app.Run();
 
 // Exposed so the integration-test WebApplicationFactory can boot the same host.

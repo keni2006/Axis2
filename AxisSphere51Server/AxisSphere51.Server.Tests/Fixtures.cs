@@ -13,6 +13,7 @@ public sealed class ScriptFixture : IDisposable
     public const string MapFile = "spheremap_test.scp";
     public const string AccountFile = "accounts_test.scp";
     public const string SpellFile = "spherespell_test.scp";
+    public const string SkillFile = "spheretables_test.scp";
 
     private const string Items = """
         // fixture items
@@ -80,6 +81,25 @@ public sealed class ScriptFixture : IDisposable
         NAME=Create Food
         """;
 
+    // [SKILL n] blocks live in spheretables.scp. The [SKILLCLASS 0] block must NOT be picked up
+    // as a skill (it starts with "SKILL" but is a different section), and the block with no KEY
+    // is skipped.
+    private const string Skills = """
+        [SKILLCLASS 0]  // max skills — not a skill definition
+        SKILL_00=50.0
+
+        [SKILL 0]
+        KEY=Alchemy
+        TITLE=Alchemist
+
+        [SKILL 25]
+        KEY=Magery  // wizardry
+        TITLE=Mage
+
+        [SKILL 99]
+        TITLE=NoKey
+        """;
+
     // gm = staff (PLEVEL 4); player = no PLEVEL line -> Player (1)
     private const string Accounts = """
         [gm]
@@ -98,6 +118,7 @@ public sealed class ScriptFixture : IDisposable
         File.WriteAllText(Path.Combine(Directory, CharFile), Chars);
         File.WriteAllText(Path.Combine(Directory, MapFile), Maps);
         File.WriteAllText(Path.Combine(Directory, SpellFile), Spells);
+        File.WriteAllText(Path.Combine(Directory, SkillFile), Skills);
         File.WriteAllText(Path.Combine(Directory, AccountFile), Accounts);
     }
 

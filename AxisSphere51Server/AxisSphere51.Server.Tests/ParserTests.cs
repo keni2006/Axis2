@@ -85,4 +85,23 @@ public class ParserTests : IClassFixture<ScriptFixture>
     {
         Assert.Empty(SphereParser.ParseFile(_fx.FilePath("does_not_exist.scp")));
     }
+
+    [Fact]
+    public void Parses_skill_blocks_ignoring_skillclass_and_keyless_blocks()
+    {
+        var skills = TravelParser.ParseSkills(_fx.FilePath(ScriptFixture.SkillFile));
+
+        // [SKILLCLASS 0] is not a skill; [SKILL 99] has no KEY -> only Alchemy (0) and Magery (25).
+        Assert.Equal(2, skills.Count);
+        Assert.Contains(skills, s => s.Index == 0 && s.Key == "Alchemy" && s.Title == "Alchemist");
+        var magery = skills.Single(s => s.Index == 25);
+        Assert.Equal("Magery", magery.Key);   // trailing "// wizardry" comment stripped
+        Assert.Equal("Mage", magery.Title);
+    }
+
+    [Fact]
+    public void ParseSkills_missing_file_returns_empty()
+    {
+        Assert.Empty(TravelParser.ParseSkills(_fx.FilePath("does_not_exist.scp")));
+    }
 }

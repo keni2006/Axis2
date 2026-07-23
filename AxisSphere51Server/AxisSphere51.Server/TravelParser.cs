@@ -21,6 +21,12 @@ public static partial class TravelParser
     [GeneratedRegex(@"^\s*(DEFNAME|NAME|RESOURCES)=(.*)$\s*", RegexOptions.Multiline)]
     private static partial Regex SpellProp();
 
+    [GeneratedRegex(@"(?m)^\s*\[SKILL\s+(\d+)\]\s*(?://.*)?$(.*?)(?=^\s*\[|\Z)", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex SkillBlock();
+
+    [GeneratedRegex(@"^\s*(KEY|TITLE)\s*=\s*(.*)$", RegexOptions.Multiline | RegexOptions.IgnoreCase)]
+    private static partial Regex SkillProp();
+
     private sealed class Region
     {
         public string Kind = "area";
@@ -160,5 +166,31 @@ public static partial class TravelParser
             spells.Add(new SpellDto(id, defName, name, resources));
         }
         return spells;
+    }
+
+    /// <summary>Parses [SKILL n] blocks (KEY/TITLE) — same shape as the desktop SkillStatService.</summary>
+    public static List<SkillDto> ParseSkills(string path)
+    {
+        var skills = new List<SkillDto>();
+        if (!File.Exists(path)) return skills;
+
+        var content = File.ReadAllText(path);
+        foreach (Match block in SkillBlock().Matches(content))
+        {
+            if (!int.TryParse(block.Groups[1].Value, out var index)) continue;
+            string key = "", title = "";
+            foreach (Match prop in SkillProp().Matches(block.Groups[2].Value))
+            {
+                var v = prop.Groups[2].Value.Split("//", StringSplitOptions.None)[0].Trim();
+                switch (prop.Groups[1].Value.ToUpperInvariant())
+                {
+                    case "KEY": key = v; break;
+                    case "TITLE": title = v; break;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(key))
+                skills.Add(new SkillDto(index, key, title));
+        }
+        return skills;
     }
 }

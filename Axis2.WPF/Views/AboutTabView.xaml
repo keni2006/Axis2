@@ -21,7 +21,7 @@
                 <TextBlock Text="Sphere 51a toolkit"
                            FontSize="13" HorizontalAlignment="Center"
                            Foreground="{DynamicResource TextMutedBrush}"/>
-                <TextBlock Text="Version 0.2"
+                <TextBlock Text="Version 0.3"
                            FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
                            Margin="0,6,0,0"
                            Foreground="{DynamicResource AccentDarkBrush}"/>

@@ -69,6 +69,13 @@ namespace Axis2.WPF.Services
             public string Resources { get; set; } = "";
         }
 
+        private sealed class WebSkill
+        {
+            public int Index { get; set; }
+            public string Key { get; set; } = "";
+            public string Title { get; set; } = "";
+        }
+
         private static System.Net.Http.Headers.AuthenticationHeaderValue? BasicAuth(string? user, string? password)
         {
             if (string.IsNullOrEmpty(user))
@@ -152,6 +159,21 @@ namespace Axis2.WPF.Services
                 DefName = s.DefName ?? "",
                 Name = s.Name ?? "",
                 Resources = s.Resources ?? "",
+            }).ToList();
+        }
+
+        /// <summary>Fetches the parsed [SKILL n] list for the Player Tweak tab.</summary>
+        public static async Task<List<SkillDef>> FetchSkillsAsync(string baseUrl, string? user = null, string? password = null)
+        {
+            var root = baseUrl.TrimEnd('/');
+            using var res = await GetAsync($"{root}/api/skills", user, password).ConfigureAwait(false);
+            var skills = await res.Content.ReadFromJsonAsync<List<WebSkill>>(_json).ConfigureAwait(false)
+                         ?? new List<WebSkill>();
+            return skills.Select(s => new SkillDef
+            {
+                Index = s.Index,
+                Key = s.Key ?? "",
+                Title = s.Title ?? "",
             }).ToList();
         }
 

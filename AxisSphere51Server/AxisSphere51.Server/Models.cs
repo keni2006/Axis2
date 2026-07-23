@@ -62,6 +62,9 @@ public record RegionDto(
 /// <summary>A parsed [SPELL n] block for the Misc tab.</summary>
 public record SpellDto(int Id, string DefName, string Name, string Resources);
 
+/// <summary>A parsed [SKILL n] block for the Player Tweak tab (KEY + TITLE).</summary>
+public record SkillDto(int Index, string Key, string Title);
+
 /// <summary>Options bound from configuration ("Scripts" section).</summary>
 public class ScriptOptions
 {
@@ -71,4 +74,6 @@ public class ScriptOptions
     public List<string> MapFiles { get; set; } = new();
     /// <summary>Files scanned for [SPELL n] blocks (default: spherespell.scp).</summary>
     public List<string> SpellFiles { get; set; } = new() { "spherespell.scp" };
+    /// <summary>Files scanned for [SKILL n] blocks (default: spheretables.scp).</summary>
+    public List<string> SkillFiles { get; set; } = new() { "spheretables.scp" };
 }

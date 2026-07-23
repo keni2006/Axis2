@@ -55,19 +55,32 @@
         <!-- Paramètres du joueur -->
         <StackPanel Grid.Row="1" Grid.Column="0" Margin="5">
             <GroupBox Header="Brain">
-                <ComboBox/>
+                <DockPanel>
+                    <Button Content="Set" DockPanel.Dock="Right" Width="50" Margin="5,0,0,0"
+                            Command="{Binding ApplyBrainCommand}"/>
+                    <ComboBox ItemsSource="{Binding Brains}" SelectedItem="{Binding SelectedBrain}"
+                              DisplayMemberPath="Name" Margin="0,2"/>
+                </DockPanel>
             </GroupBox>
             <GroupBox Header="Stats">
-                <StackPanel>
-                    <ComboBox/>
-                    <TextBox/>
-                </StackPanel>
+                <DockPanel>
+                    <Button Content="Set" DockPanel.Dock="Right" Width="50" Margin="5,0,0,0"
+                            Command="{Binding ApplyStatCommand}"/>
+                    <TextBox DockPanel.Dock="Right" Width="70" Margin="5,0,0,0"
+                             Text="{Binding StatValue, UpdateSourceTrigger=PropertyChanged}"/>
+                    <ComboBox ItemsSource="{Binding Stats}" SelectedItem="{Binding SelectedStat}"
+                              DisplayMemberPath="Label" Margin="0,2"/>
+                </DockPanel>
             </GroupBox>
             <GroupBox Header="Skills">
-                <StackPanel>
-                    <ComboBox/>
-                    <TextBox/>
-                </StackPanel>
+                <DockPanel>
+                    <Button Content="Set" DockPanel.Dock="Right" Width="50" Margin="5,0,0,0"
+                            Command="{Binding ApplySkillCommand}"/>
+                    <TextBox DockPanel.Dock="Right" Width="70" Margin="5,0,0,0"
+                             Text="{Binding SkillValue, UpdateSourceTrigger=PropertyChanged}"/>
+                    <ComboBox ItemsSource="{Binding Skills}" SelectedItem="{Binding SelectedSkill}"
+                              DisplayMemberPath="Key" Margin="0,2"/>
+                </DockPanel>
             </GroupBox>
         </StackPanel>
 

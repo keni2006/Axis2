@@ -28,6 +28,8 @@ public class ApiFactory : WebApplicationFactory<Program>
                 ["Scripts:MapFiles:1"] = "",
                 ["Scripts:SpellFiles:0"] = ScriptFixture.SpellFile,
                 ["Scripts:SpellFiles:1"] = "",
+                ["Scripts:SkillFiles:0"] = ScriptFixture.SkillFile,
+                ["Scripts:SkillFiles:1"] = "",
                 ["Accounts:BaseDirectory"] = Fixture.Directory,
                 ["Accounts:Files:0"] = ScriptFixture.AccountFile,
                 ["Accounts:MinPlevel"] = "2",
@@ -222,6 +224,29 @@ public class ApiTests : IClassFixture<ApiFactory>
         var filtered = await _client.GetFromJsonAsync<List<SpellDto>>("/api/spells?search=food", Json);
         Assert.Single(filtered!);
         Assert.Equal("Create Food", filtered![0].Name);
+    }
+
+    [Fact]
+    public async Task Skills_are_parsed_with_key_and_title()
+    {
+        var skills = await _client.GetFromJsonAsync<List<SkillDto>>("/api/skills", Json);
+        Assert.NotNull(skills);
+
+        // [SKILLCLASS 0] is ignored; [SKILL 99] has no KEY so it's skipped -> 2 real skills.
+        Assert.Equal(2, skills!.Count);
+        Assert.DoesNotContain(skills, s => s.Title == "NoKey");
+
+        var magery = skills!.Single(s => s.Index == 25);
+        Assert.Equal("Magery", magery.Key);   // trailing // comment stripped
+        Assert.Equal("Mage", magery.Title);
+    }
+
+    [Fact]
+    public async Task Skills_filter_by_search()
+    {
+        var filtered = await _client.GetFromJsonAsync<List<SkillDto>>("/api/skills?search=alch", Json);
+        Assert.Single(filtered!);
+        Assert.Equal("Alchemy", filtered![0].Key);
     }
 }
 

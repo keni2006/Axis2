@@ -17,6 +17,7 @@ public class ScriptRepository
     private List<SObject> _areas = new();
     private List<RegionDto> _regions = new();
     private List<SpellDto> _spells = new();
+    private List<SkillDto> _skills = new();
     private List<string> _loadedFiles = new();
 
     public ScriptRepository(IOptions<ScriptOptions> options, ILogger<ScriptRepository> logger)
@@ -34,6 +35,7 @@ public class ScriptRepository
         var areas = new List<SObject>();
         var regions = new List<RegionDto>();
         var spells = new List<SpellDto>();
+        var skills = new List<SkillDto>();
         var files = new List<string>();
 
         foreach (var (names, bucket) in new[]
@@ -91,6 +93,24 @@ public class ScriptRepository
             }
         }
 
+        // Skills come from the configured skill files (spheretables.scp), de-duped by index.
+        var skillByIndex = new Dictionary<int, SkillDto>();
+        foreach (var name in _options.SkillFiles)
+        {
+            var path = Path.IsPathRooted(name) ? name : Path.Combine(_options.BaseDirectory, name);
+            if (File.Exists(path))
+            {
+                foreach (var skill in TravelParser.ParseSkills(path))
+                    skillByIndex[skill.Index] = skill;
+                if (!files.Contains(name)) files.Add(name);
+            }
+            else
+            {
+                _logger.LogWarning("Skill file not found: {Path}", path);
+            }
+        }
+        skills.AddRange(skillByIndex.Values.OrderBy(s => s.Index));
+
         lock (_gate)
         {
             _items = items;
@@ -98,6 +118,7 @@ public class ScriptRepository
             _areas = areas;
             _regions = regions;
             _spells = spells;
+            _skills = skills;
             _loadedFiles = files;
         }
     }
@@ -110,6 +131,11 @@ public class ScriptRepository
     public IReadOnlyList<SpellDto> Spells()
     {
         lock (_gate) return _spells.ToList();
+    }
+
+    public IReadOnlyList<SkillDto> Skills()
+    {
+        lock (_gate) return _skills.ToList();
     }
 
     private List<SObject> Bucket(string kind) => kind switch

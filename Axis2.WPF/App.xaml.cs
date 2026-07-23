@@ -55,6 +55,7 @@ namespace Axis2.WPF
             var mobTypesService = new MobTypesService();
             var scriptParser = new ScriptParser();
             var scriptParserService = new ScriptParserService();
+            var skillStatService = new SkillStatService();
             var spellService = new SpellService(); // Instantiate SpellService
             var musicService = new MusicService(); // Instantiate MusicService
             var soundService = new SoundService(); // Instantiate SoundService
@@ -145,7 +146,7 @@ namespace Axis2.WPF
             var launcherTabViewModel = new LauncherTabViewModel(settingsService);
             var logTabViewModel = new LogTabViewModel();
             var miscTabViewModel = new MiscTabViewModel(spellService, musicService, soundService, settingsService, eventAggregator, uoClient);
-            var playerTweakTabViewModel = new PlayerTweakTabViewModel();
+            var playerTweakTabViewModel = new PlayerTweakTabViewModel(skillStatService, eventAggregator, uoClient);
             var reminderTabViewModel = new ReminderTabViewModel();
             var spawnTabViewModel = new SpawnTabViewModel(mulFileManager, scriptParser, eventAggregator, uoClient, mobTypesService, animationManager, bodyDefService);
             Logger.Log(LogSource.Core, "View models initialized.");
